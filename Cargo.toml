@@ -6,5 +6,4 @@ edition = "2018"
 
 [dependencies]
 iced = { git = "https://github.com/hecrj/iced", rev = "9ba4cfd23f4620bab93df9616617643604db2c79", features = ["async-std"] }
-iced_native = { git = "https://github.com/hecrj/iced", rev = "9ba4cfd23f4620bab93df9616617643604db2c79" }
 rand = "0.7"
