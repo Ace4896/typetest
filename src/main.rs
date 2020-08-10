@@ -12,8 +12,8 @@ mod word_pool;
 const MAX_LINE_LENGTH: usize = 50;
 const TEST_TIME_SECS: u32 = 60;
 
-const RED: Color = Color::from_rgb(1.0, 0.0, 0.0);
-const GREEN: Color = Color::from_rgb(0.0, 1.0, 0.0);
+const RED: Color = Color::from_rgb(0.75, 0.0, 0.0);
+const GREEN: Color = Color::from_rgb(0.0, 0.75, 0.0);
 
 fn main() {
     TypingTest::run(Settings::default());
