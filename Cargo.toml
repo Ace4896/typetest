@@ -1,12 +1,14 @@
 [package]
 name = "typetest"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
+description = "An offline typing test, written using Iced."
 
 [dependencies]
 rand = "0.7"
 
+# TODO: Use next version of Iced once available
 [dependencies.iced]
 git = "https://github.com/hecrj/iced"
 rev = "9ba4cfd23f4620bab93df9616617643604db2c79"
