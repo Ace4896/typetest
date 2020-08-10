@@ -362,6 +362,12 @@ impl Application for TypingTest {
         let test_lengths = Row::new()
             .spacing(10)
             .push(Radio::new(
+                TestLength::Length(10),
+                "10 secs",
+                self.selected_test_length,
+                UIMessage::TestLengthChanged,
+            ))
+            .push(Radio::new(
                 TestLength::Length(30),
                 "30 secs",
                 self.selected_test_length,
