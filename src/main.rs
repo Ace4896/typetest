@@ -135,12 +135,6 @@ struct Stats {
 }
 
 impl Stats {
-    pub fn current_wpm(&self, elapsed_secs: u32, total_secs: u32) -> u32 {
-        let unnormalised = self.correct_chars as f32 / 5.0;
-        let normalised = unnormalised / (elapsed_secs as f32 / total_secs as f32);
-        normalised as u32
-    }
-
     pub fn final_wpm(&self) -> u32 {
         self.correct_chars / 5
     }
@@ -192,7 +186,7 @@ impl Application for TypingTest {
                 }
 
                 if self.state == TestState::Active {
-                    // If spacebar was pressed, submit the current word
+                    // If spacebar was pressed and the word isn't just whitespace, submit this string
                     if s.ends_with(' ') {
                         if !s.trim_end().is_empty() {
                             self.submit_word(s.trim_end());
@@ -259,33 +253,38 @@ impl Application for TypingTest {
             .push(timer)
             .push(retry);
 
-        // let wpm_display = Text::new(format!("{} WPM", self.stats.current_wpm(TEST_TIME_SECS - self.remaining_time_secs, TEST_TIME_SECS))).size(16);
-
-        let correct_display = Text::new(format!(
-            "Correct Words: {} ({ } Characters)",
-            self.stats.correct_words, self.stats.correct_chars
-        ));
-
-        let incorrect_display = Text::new(format!(
-            "Incorrect Words: {} ({ } Characters)",
-            self.stats.incorrect_words, self.stats.incorrect_chars
-        ));
-
-        let accuracy_display = Text::new(format!("Accuracy: {:.2}%", self.stats.accuracy()));
-
-        let stats_display = Column::new()
-            // .push(wpm_display)
-            .push(correct_display)
-            .push(incorrect_display)
-            .push(accuracy_display);
-
-        let main_view = Column::new()
+        let mut main_view = Column::new()
             .spacing(20)
             .align_items(Align::Center)
             .push(title)
             .push(line_display)
-            .push(typing_display)
-            .push(stats_display);
+            .push(typing_display);
+
+        // Show statistics if the test is completed
+        if self.state == TestState::Complete {
+            let wpm = Text::new(format!("{} WPM", self.stats.final_wpm()));
+
+            let correct_display = Text::new(format!(
+                "Correct Words: {} ({ } Characters)",
+                self.stats.correct_words, self.stats.correct_chars
+            ));
+    
+            let incorrect_display = Text::new(format!(
+                "Incorrect Words: {} ({ } Characters)",
+                self.stats.incorrect_words, self.stats.incorrect_chars
+            ));
+    
+            let accuracy_display = Text::new(format!("Accuracy: {:.2}%", self.stats.accuracy()));
+    
+            let stats_display = Column::new()
+                .push(wpm)
+                .push(correct_display)
+                .push(incorrect_display)
+                .push(accuracy_display);
+
+            main_view = main_view
+                .push(stats_display);
+        }
 
         Container::new(main_view)
             .padding(10)
