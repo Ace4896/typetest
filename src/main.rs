@@ -73,16 +73,11 @@ impl TypingTest {
     pub fn submit_word(&mut self, word: &str) {
         let actual_word = &mut self.current_line[self.current_word_pos];
 
-        // NOTE: +1 because of the spacebar
-        let char_count = word.len() as u32 + 1;
-
         actual_word.state = if actual_word.word == word {
-            self.stats.correct_chars += char_count;
-            self.stats.correct_words += 1;
+            self.stats.correct(word);
             WordState::Correct
         } else {
-            self.stats.incorrect_chars += char_count;
-            self.stats.incorrect_words += 1;
+            self.stats.incorrect(word);
             WordState::Incorrect
         };
 
@@ -148,6 +143,18 @@ struct Stats {
 }
 
 impl Stats {
+    pub fn correct(&mut self, word: &str) {
+        // NOTE: +1 for chars due to spacebar
+        self.correct_chars += word.len() as u32 + 1;
+        self.correct_words += 1;
+    }
+
+    pub fn incorrect(&mut self, word: &str) {
+        // NOTE: +1 for chars due to spacebar
+        self.incorrect_chars += word.len() as u32 + 1;
+        self.incorrect_words += 1;
+    }
+
     pub fn final_wpm(&self) -> u32 {
         self.correct_chars / 5
     }
@@ -207,8 +214,9 @@ impl Application for TypingTest {
                     TestState::Active => {
                         // If spacebar was pressed and the word isn't just whitespace, submit this string
                         if s.ends_with(' ') {
-                            if !s.trim_end().is_empty() {
-                                self.submit_word(s.trim_end());
+                            let trimmed = s.trim_end();
+                            if !trimmed.is_empty() {
+                                self.submit_word(trimmed);
                             }
 
                             s.truncate(0);
@@ -251,7 +259,10 @@ impl Application for TypingTest {
             .map(Text::from)
             .fold(Row::new().spacing(5), |row, word| row.push(word));
 
-        let line_display = Column::new().spacing(5).push(current_line).push(next_line)
+        let line_display = Column::new()
+            .spacing(5)
+            .push(current_line)
+            .push(next_line)
             .width(Length::Fill);
 
         let typing_area = TextInput::new(
