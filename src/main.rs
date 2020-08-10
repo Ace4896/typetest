@@ -173,7 +173,8 @@ impl Stats {
     }
 
     pub fn final_wpm(&self, total_secs: u32) -> u32 {
-        ((self.correct_chars as f32 / 5.0) / total_secs as f32) as u32
+        let mins = total_secs as f32 / 60.0;
+        ((self.correct_chars as f32 / 5.0) / mins) as u32
     }
 
     pub fn accuracy(&self) -> f32 {
