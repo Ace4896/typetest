@@ -11,4 +11,4 @@ rand = "0.7"
 git = "https://github.com/hecrj/iced"
 rev = "9ba4cfd23f4620bab93df9616617643604db2c79"
 default-features = false
-features = ["async-std", "glow", "glow_default_system_font"]
+features = ["async-std", "glow"]
