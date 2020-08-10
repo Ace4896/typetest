@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use iced::{
     button, executor, text_input, time, Align, Application, Button, Color, Column, Command,
-    Container, Length, Row, Settings, Subscription, Text, TextInput,
+    Container, HorizontalAlignment, Length, Row, Settings, Subscription, Text, TextInput,
 };
 
 use rand::prelude::*;
@@ -44,7 +44,9 @@ struct TypingTest {
     current_line: Vec<Word>,
     next_line: Vec<Word>,
     stats: Stats,
+    display_current_wpm: bool,
     text_input: text_input::State,
+    wpm_button: button::State,
     retry_button: button::State,
 }
 
@@ -65,7 +67,9 @@ impl Default for TypingTest {
             current_word_pos: 0,
             current_word: String::new(),
             stats: Stats::default(),
+            display_current_wpm: true,
             text_input: text_input::State::default(),
+            wpm_button: button::State::default(),
             retry_button: button::State::default(),
         }
     }
@@ -184,6 +188,7 @@ enum UIMessage {
     Reset,
     TimerTick(Instant),
     InputChanged(String),
+    ToggleCurrentWPM,
 }
 
 impl Application for TypingTest {
@@ -235,6 +240,7 @@ impl Application for TypingTest {
 
                 self.current_word = s;
             }
+            UIMessage::ToggleCurrentWPM => self.display_current_wpm = !self.display_current_wpm,
         }
 
         Command::none()
@@ -282,6 +288,23 @@ impl Application for TypingTest {
         )
         .padding(5);
 
+        let current_wpm = if self.display_current_wpm {
+            format!(
+                "{} wpm",
+                self.stats
+                    .current_wpm(self.remaining_time_secs, self.test_length_secs)
+            )
+        } else {
+            String::from(" ")
+        };
+
+        let wpm_button = Button::new(
+            &mut self.wpm_button,
+            Text::new(current_wpm).horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .min_width(100)
+        .on_press(UIMessage::ToggleCurrentWPM);
+
         let timer = Text::new(format_mm_ss(self.remaining_time_secs));
         let retry =
             Button::new(&mut self.retry_button, Text::new("Retry")).on_press(UIMessage::Reset);
@@ -290,6 +313,7 @@ impl Application for TypingTest {
             .spacing(10)
             .align_items(Align::Center)
             .push(typing_area)
+            .push(wpm_button)
             .push(timer)
             .push(retry);
 
@@ -302,7 +326,6 @@ impl Application for TypingTest {
             .push(typing_display);
 
         // Show statistics if the test is completed
-        // if self.state == TestState::Complete {
         let wpm = if self.state == TestState::Active {
             self.stats
                 .current_wpm(self.remaining_time_secs, self.test_length_secs)
@@ -313,12 +336,12 @@ impl Application for TypingTest {
         let wpm = Text::new(format!("{} WPM", wpm));
 
         let correct_display = Text::new(format!(
-            "Correct Words: {} ({ } Characters)",
+            "Correct Words: {} ({} Characters)",
             self.stats.correct_words, self.stats.correct_chars
         ));
 
         let incorrect_display = Text::new(format!(
-            "Incorrect Words: {} ({ } Characters)",
+            "Incorrect Words: {} ({} Characters)",
             self.stats.incorrect_words, self.stats.incorrect_chars
         ));
 
@@ -331,7 +354,6 @@ impl Application for TypingTest {
             .push(accuracy_display);
 
         main_view = main_view.push(stats_display);
-        // }
 
         Container::new(main_view)
             .padding(10)
