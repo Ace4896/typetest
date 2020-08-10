@@ -9,7 +9,7 @@ use rand::prelude::*;
 
 mod word_pool;
 
-const MAX_LINE_LENGTH: usize = 50;
+const MAX_LINE_LENGTH: usize = 60;
 const TEST_TIME_SECS: u32 = 60;
 
 const RED: Color = Color::from_rgb(0.75, 0.0, 0.0);
