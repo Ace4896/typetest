@@ -172,8 +172,8 @@ impl Stats {
         (unnormalised / ratio_completed) as u32
     }
 
-    pub fn final_wpm(&self) -> u32 {
-        self.correct_chars / 5
+    pub fn final_wpm(&self, total_secs: u32) -> u32 {
+        ((self.correct_chars as f32 / 5.0) / total_secs as f32) as u32
     }
 
     pub fn accuracy(&self) -> f32 {
@@ -349,7 +349,11 @@ impl Application for TypingTest {
 
         // Show statistics if the test is completed
         if self.state == TestState::Complete {
-            let wpm = Text::new(format!("{} WPM", self.stats.final_wpm())).size(30);
+            let wpm = Text::new(format!(
+                "{} WPM",
+                self.stats.final_wpm(self.test_length_secs)
+            ))
+            .size(30);
 
             let correct_chars_label = Text::new("Correct Characters:");
             let correct_chars = Text::new(self.stats.correct_chars.to_string()).color(GREEN);
