@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use iced::{
     button, executor, text_input, time, Align, Application, Button, Color, Column, Command,
@@ -35,6 +35,7 @@ fn generate_line(words: &[String]) -> Vec<Word> {
 
 struct TypingTest {
     state: TestState,
+    test_start: Instant,
     remaining_time_secs: u32,
     word_pool: Vec<String>,
     current_word_pos: usize,
@@ -57,6 +58,7 @@ impl Default for TypingTest {
             current_line,
             next_line,
             state: TestState::Inactive,
+            test_start: Instant::now(),
             remaining_time_secs: TEST_TIME_SECS,
             current_word_pos: 0,
             current_word: String::new(),
@@ -162,7 +164,7 @@ impl Stats {
 #[derive(Debug, Clone)]
 enum UIMessage {
     Reset,
-    Tick,
+    TimerTick(Instant),
     InputChanged(String),
 }
 
@@ -182,8 +184,12 @@ impl Application for TypingTest {
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
             UIMessage::Reset => *self = TypingTest::default(),
-            UIMessage::Tick => {
-                self.remaining_time_secs -= 1;
+            UIMessage::TimerTick(last_tick) => {
+                self.remaining_time_secs = TEST_TIME_SECS
+                    - last_tick
+                        .checked_duration_since(self.test_start)
+                        .unwrap_or_default()
+                        .as_secs() as u32;
 
                 if self.remaining_time_secs == 0 {
                     self.state = TestState::Complete;
@@ -191,7 +197,10 @@ impl Application for TypingTest {
             }
             UIMessage::InputChanged(mut s) => {
                 match self.state {
-                    TestState::Inactive => self.state = TestState::Active,
+                    TestState::Inactive => {
+                        self.test_start = Instant::now();
+                        self.state = TestState::Active;
+                    }
                     TestState::Complete => s.truncate(0),
                     TestState::Active => {
                         // If spacebar was pressed and the word isn't just whitespace, submit this string
@@ -213,11 +222,11 @@ impl Application for TypingTest {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        const TICK_DURATION: Duration = Duration::from_secs(1);
+        const TICK_DURATION: Duration = Duration::from_millis(10);
 
         match self.state {
             TestState::Inactive | TestState::Complete => Subscription::none(),
-            TestState::Active => time::every(TICK_DURATION).map(|_| UIMessage::Tick),
+            TestState::Active => time::every(TICK_DURATION).map(UIMessage::TimerTick),
         }
     }
 
