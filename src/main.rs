@@ -21,8 +21,7 @@ fn generate_line(words: &[String]) -> Vec<Word> {
     let mut final_vec = Vec::new();
 
     loop {
-        let word = words.choose(&mut thread_rng())
-            .unwrap();
+        let word = words.choose(&mut thread_rng()).unwrap();
         total_chars += word.len();
         if total_chars > MAX_LINE_LENGTH {
             break;
@@ -191,22 +190,18 @@ impl Application for TypingTest {
                 }
             }
             UIMessage::InputChanged(mut s) => {
-                if self.state == TestState::Inactive {
-                    self.state = TestState::Active;
-                }
+                match self.state {
+                    TestState::Inactive => self.state = TestState::Active,
+                    TestState::Complete => s.truncate(0),
+                    TestState::Active => {
+                        // If spacebar was pressed and the word isn't just whitespace, submit this string
+                        if s.ends_with(' ') {
+                            if !s.trim_end().is_empty() {
+                                self.submit_word(s.trim_end());
+                            }
 
-                if self.state == TestState::Complete {
-                    s.truncate(0);
-                }
-
-                if self.state == TestState::Active {
-                    // If spacebar was pressed and the word isn't just whitespace, submit this string
-                    if s.ends_with(' ') {
-                        if !s.trim_end().is_empty() {
-                            self.submit_word(s.trim_end());
+                            s.truncate(0);
                         }
-
-                        s.truncate(0);
                     }
                 }
 
@@ -276,28 +271,27 @@ impl Application for TypingTest {
 
         // Show statistics if the test is completed
         // if self.state == TestState::Complete {
-            let wpm = Text::new(format!("{} WPM", self.stats.final_wpm()));
+        let wpm = Text::new(format!("{} WPM", self.stats.final_wpm()));
 
-            let correct_display = Text::new(format!(
-                "Correct Words: {} ({ } Characters)",
-                self.stats.correct_words, self.stats.correct_chars
-            ));
-    
-            let incorrect_display = Text::new(format!(
-                "Incorrect Words: {} ({ } Characters)",
-                self.stats.incorrect_words, self.stats.incorrect_chars
-            ));
-    
-            let accuracy_display = Text::new(format!("Accuracy: {:.2}%", self.stats.accuracy()));
-    
-            let stats_display = Column::new()
-                .push(wpm)
-                .push(correct_display)
-                .push(incorrect_display)
-                .push(accuracy_display);
+        let correct_display = Text::new(format!(
+            "Correct Words: {} ({ } Characters)",
+            self.stats.correct_words, self.stats.correct_chars
+        ));
 
-            main_view = main_view
-                .push(stats_display);
+        let incorrect_display = Text::new(format!(
+            "Incorrect Words: {} ({ } Characters)",
+            self.stats.incorrect_words, self.stats.incorrect_chars
+        ));
+
+        let accuracy_display = Text::new(format!("Accuracy: {:.2}%", self.stats.accuracy()));
+
+        let stats_display = Column::new()
+            .push(wpm)
+            .push(correct_display)
+            .push(incorrect_display)
+            .push(accuracy_display);
+
+        main_view = main_view.push(stats_display);
         // }
 
         Container::new(main_view)
