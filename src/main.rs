@@ -12,6 +12,9 @@ mod word_pool;
 const MAX_LINE_LENGTH: usize = 50;
 const TEST_TIME_SECS: u32 = 60;
 
+const RED: Color = Color::from_rgb(1.0, 0.0, 0.0);
+const GREEN: Color = Color::from_rgb(0.0, 1.0, 0.0);
+
 fn main() {
     TypingTest::run(Settings::default());
 }
@@ -120,9 +123,6 @@ impl<S: Into<String>> From<S> for Word {
 
 impl From<&Word> for Text {
     fn from(word: &Word) -> Self {
-        const RED: Color = Color::from_rgb(1.0, 0.0, 0.0);
-        const GREEN: Color = Color::from_rgb(0.0, 1.0, 0.0);
-
         let color = match word.state {
             WordState::NotTyped => Color::BLACK,
             WordState::Correct => GREEN,
@@ -290,7 +290,7 @@ impl Application for TypingTest {
 
         let current_wpm = if self.display_current_wpm {
             format!(
-                "{} wpm",
+                "{} WPM",
                 self.stats
                     .current_wpm(self.remaining_time_secs, self.test_length_secs)
             )
@@ -326,34 +326,52 @@ impl Application for TypingTest {
             .push(typing_display);
 
         // Show statistics if the test is completed
-        let wpm = if self.state == TestState::Active {
-            self.stats
-                .current_wpm(self.remaining_time_secs, self.test_length_secs)
-        } else {
-            self.stats.final_wpm()
-        };
+        if self.state == TestState::Complete {
+            let wpm = Text::new(format!("{} WPM", self.stats.final_wpm())).size(30);
 
-        let wpm = Text::new(format!("{} WPM", wpm));
+            let correct_chars_label = Text::new("Correct Characters:");
+            let correct_chars = Text::new(self.stats.correct_chars.to_string()).color(GREEN);
 
-        let correct_display = Text::new(format!(
-            "Correct Words: {} ({} Characters)",
-            self.stats.correct_words, self.stats.correct_chars
-        ));
+            let correct_words_label = Text::new("Correct Words:");
+            let correct_words = Text::new(self.stats.correct_words.to_string()).color(GREEN);
 
-        let incorrect_display = Text::new(format!(
-            "Incorrect Words: {} ({} Characters)",
-            self.stats.incorrect_words, self.stats.incorrect_chars
-        ));
+            let incorrect_chars_label = Text::new("Incorrect Characters:");
+            let incorrect_chars = Text::new(self.stats.incorrect_chars.to_string()).color(RED);
 
-        let accuracy_display = Text::new(format!("Accuracy: {:.2}%", self.stats.accuracy()));
+            let incorrect_words_label = Text::new("Incorrect Words:");
+            let incorrect_words = Text::new(self.stats.incorrect_words.to_string()).color(RED);
 
-        let stats_display = Column::new()
-            .push(wpm)
-            .push(correct_display)
-            .push(incorrect_display)
-            .push(accuracy_display);
+            let accuracy_label = Text::new("Accuracy:");
+            let accuracy = Text::new(format!("{:.2}%", self.stats.accuracy()));
 
-        main_view = main_view.push(stats_display);
+            let labels = Column::new()
+                .align_items(Align::End)
+                .spacing(10)
+                .push(correct_chars_label)
+                .push(incorrect_chars_label)
+                .push(correct_words_label)
+                .push(incorrect_words_label)
+                .push(accuracy_label);
+
+            let values = Column::new()
+                .align_items(Align::Start)
+                .spacing(10)
+                .push(correct_chars)
+                .push(incorrect_chars)
+                .push(correct_words)
+                .push(incorrect_words)
+                .push(accuracy);
+
+            let stats_breakdown = Row::new().spacing(10).push(labels).push(values);
+
+            let stats_display = Column::new()
+                .align_items(Align::Center)
+                .spacing(20)
+                .push(wpm)
+                .push(stats_breakdown);
+
+            main_view = main_view.push(stats_display);
+        }
 
         Container::new(main_view)
             .padding(10)
