@@ -195,6 +195,10 @@ impl Application for TypingTest {
                     self.state = TestState::Active;
                 }
 
+                if self.state == TestState::Complete {
+                    s.truncate(0);
+                }
+
                 if self.state == TestState::Active {
                     // If spacebar was pressed and the word isn't just whitespace, submit this string
                     if s.ends_with(' ') {
@@ -271,7 +275,7 @@ impl Application for TypingTest {
             .push(typing_display);
 
         // Show statistics if the test is completed
-        if self.state == TestState::Complete {
+        // if self.state == TestState::Complete {
             let wpm = Text::new(format!("{} WPM", self.stats.final_wpm()));
 
             let correct_display = Text::new(format!(
@@ -294,7 +298,7 @@ impl Application for TypingTest {
 
             main_view = main_view
                 .push(stats_display);
-        }
+        // }
 
         Container::new(main_view)
             .padding(10)
