@@ -251,7 +251,8 @@ impl Application for TypingTest {
             .map(Text::from)
             .fold(Row::new().spacing(5), |row, word| row.push(word));
 
-        let line_display = Column::new().spacing(5).push(current_line).push(next_line);
+        let line_display = Column::new().spacing(5).push(current_line).push(next_line)
+            .width(Length::Fill);
 
         let typing_area = TextInput::new(
             &mut self.text_input,
@@ -259,8 +260,7 @@ impl Application for TypingTest {
             &self.current_word,
             UIMessage::InputChanged,
         )
-        .padding(5)
-        .width(Length::Units(200));
+        .padding(5);
 
         let timer = Text::new(format_mm_ss(self.remaining_time_secs));
         let retry =
@@ -276,6 +276,7 @@ impl Application for TypingTest {
         let mut main_view = Column::new()
             .spacing(20)
             .align_items(Align::Center)
+            .max_width(600)
             .push(title)
             .push(line_display)
             .push(typing_display);
