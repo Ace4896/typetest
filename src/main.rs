@@ -255,7 +255,7 @@ impl Application for TypingTest {
 
         let typing_area = TextInput::new(
             &mut self.text_input,
-            "Type Here!",
+            "",
             &self.current_word,
             UIMessage::InputChanged,
         )
