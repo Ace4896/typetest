@@ -5,6 +5,11 @@ use iced::{
     Container, Length, Row, Settings, Subscription, Text, TextInput,
 };
 
+use rand::prelude::*;
+
+mod word_pool;
+
+const MAX_LINE_LENGTH: usize = 50;
 const TEST_TIME_SECS: u32 = 60;
 
 fn main() {
@@ -12,7 +17,21 @@ fn main() {
 }
 
 fn generate_line(words: &[String]) -> Vec<Word> {
-    words.iter().map(Word::from).collect()
+    let mut total_chars = 0;
+    let mut final_vec = Vec::new();
+
+    loop {
+        let word = words.choose(&mut thread_rng())
+            .unwrap();
+        total_chars += word.len();
+        if total_chars > MAX_LINE_LENGTH {
+            break;
+        }
+
+        final_vec.push(word.into());
+    }
+
+    final_vec
 }
 
 struct TypingTest {
@@ -30,16 +49,7 @@ struct TypingTest {
 
 impl Default for TypingTest {
     fn default() -> Self {
-        let word_pool = vec![
-            "test".to_owned(),
-            "strings".to_owned(),
-            "are".to_string(),
-            "not".to_string(),
-            "fun".to_string(),
-            "to".to_string(),
-            "add".to_string(),
-        ];
-
+        let word_pool = word_pool::default_word_pool();
         let current_line = generate_line(&word_pool);
         let next_line = generate_line(&word_pool);
 
