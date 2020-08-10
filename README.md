@@ -4,10 +4,12 @@ An offline typing test, written using Rust and Iced. Inspired by [typetest.io](h
 
 ![Demo](demo.gif)
 
-## Installation
+## Usage
 
-To install the latest release from `crates.io`, use:
+Clone this repository, and run!
 
 ```
-cargo install typetest
+git clone https://github.com/Ace4896/typetest.git
+cd typetest
+cargo run --release
 ```
