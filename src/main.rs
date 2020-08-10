@@ -36,6 +36,7 @@ fn generate_line(words: &[String]) -> Vec<Word> {
 struct TypingTest {
     state: TestState,
     test_start: Instant,
+    test_length_secs: u32,
     remaining_time_secs: u32,
     word_pool: Vec<String>,
     current_word_pos: usize,
@@ -59,6 +60,7 @@ impl Default for TypingTest {
             next_line,
             state: TestState::Inactive,
             test_start: Instant::now(),
+            test_length_secs: TEST_TIME_SECS,
             remaining_time_secs: TEST_TIME_SECS,
             current_word_pos: 0,
             current_word: String::new(),
@@ -153,6 +155,13 @@ impl Stats {
         // NOTE: +1 for chars due to spacebar
         self.incorrect_chars += word.len() as u32 + 1;
         self.incorrect_words += 1;
+    }
+
+    pub fn current_wpm(&self, remaining_secs: u32, total_secs: u32) -> u32 {
+        let elapsed_secs = total_secs - remaining_secs;
+        let unnormalised = self.correct_chars as f32 / 5.0;
+        let ratio_completed = elapsed_secs as f32 / total_secs as f32;
+        (unnormalised / ratio_completed) as u32
     }
 
     pub fn final_wpm(&self) -> u32 {
@@ -294,7 +303,14 @@ impl Application for TypingTest {
 
         // Show statistics if the test is completed
         // if self.state == TestState::Complete {
-        let wpm = Text::new(format!("{} WPM", self.stats.final_wpm()));
+        let wpm = if self.state == TestState::Active {
+            self.stats
+                .current_wpm(self.remaining_time_secs, self.test_length_secs)
+        } else {
+            self.stats.final_wpm()
+        };
+
+        let wpm = Text::new(format!("{} WPM", wpm));
 
         let correct_display = Text::new(format!(
             "Correct Words: {} ({ } Characters)",
