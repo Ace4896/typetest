@@ -72,7 +72,9 @@ impl Default for TypingTest {
 impl TypingTest {
     pub fn submit_word(&mut self, word: &str) {
         let actual_word = &mut self.current_line[self.current_word_pos];
-        let char_count = word.len() as u32;
+
+        // NOTE: +1 because of the spacebar
+        let char_count = word.len() as u32 + 1;
 
         actual_word.state = if actual_word.word == word {
             self.stats.correct_chars += char_count;
