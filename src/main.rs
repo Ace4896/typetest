@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use iced::{
     button, executor, text_input, time, Align, Application, Button, Color, Column, Command,
-    Container, HorizontalAlignment, Length, Row, Settings, Subscription, Text, TextInput,
+    Container, HorizontalAlignment, Length, Radio, Row, Settings, Subscription, Text, TextInput,
 };
 
 use rand::prelude::*;
@@ -39,6 +39,7 @@ fn generate_line(words: &[String]) -> Vec<Word> {
 struct TypingTest {
     state: TestState,
     test_start: Instant,
+    selected_test_length: Option<TestLength>,
     test_length_secs: u32,
     remaining_time_secs: u32,
     word_pool: Vec<String>,
@@ -67,6 +68,7 @@ impl Default for TypingTest {
             next_line,
             state: TestState::Inactive,
             test_start: Instant::now(),
+            selected_test_length: Some(TestLength::Length(TEST_TIME_SECS)),
             test_length_secs: TEST_TIME_SECS,
             remaining_time_secs: TEST_TIME_SECS,
             current_word_pos: 0,
@@ -83,6 +85,15 @@ impl Default for TypingTest {
 }
 
 impl TypingTest {
+    pub fn with_test_length(length_secs: u32) -> TypingTest {
+        TypingTest {
+            selected_test_length: Some(TestLength::Length(length_secs)),
+            test_length_secs: length_secs,
+            remaining_time_secs: length_secs,
+            ..TypingTest::default()
+        }
+    }
+
     pub fn submit_word(&mut self, word: &str) {
         let actual_word = &mut self.current_line[self.current_word_pos];
 
@@ -108,6 +119,11 @@ enum TestState {
     Inactive,
     Active,
     Complete,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TestLength {
+    Length(u32),
 }
 
 #[derive(Clone)]
@@ -166,10 +182,9 @@ impl Stats {
     }
 
     pub fn current_wpm(&self, remaining_secs: u32, total_secs: u32) -> u32 {
-        let elapsed_secs = total_secs - remaining_secs;
+        let elapsed_mins = (total_secs - remaining_secs) as f32 / 60.0;
         let unnormalised = self.correct_chars as f32 / 5.0;
-        let ratio_completed = elapsed_secs as f32 / total_secs as f32;
-        (unnormalised / ratio_completed) as u32
+        (unnormalised / elapsed_mins) as u32
     }
 
     pub fn final_wpm(&self, total_secs: u32) -> u32 {
@@ -193,6 +208,7 @@ enum UIMessage {
     Reset,
     TimerTick(Instant),
     InputChanged(String),
+    TestLengthChanged(TestLength),
     ToggleCurrentWPM,
     ToggleTimer,
 }
@@ -212,9 +228,9 @@ impl Application for TypingTest {
 
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
-            UIMessage::Reset => *self = TypingTest::default(),
+            UIMessage::Reset => *self = TypingTest::with_test_length(self.test_length_secs),
             UIMessage::TimerTick(last_tick) => {
-                self.remaining_time_secs = TEST_TIME_SECS
+                self.remaining_time_secs = self.test_length_secs
                     - last_tick
                         .checked_duration_since(self.test_start)
                         .unwrap_or_default()
@@ -246,6 +262,9 @@ impl Application for TypingTest {
 
                 self.current_word = s;
             }
+            UIMessage::TestLengthChanged(length) => match length {
+                TestLength::Length(secs) => *self = TypingTest::with_test_length(secs),
+            },
             UIMessage::ToggleCurrentWPM => self.display_current_wpm = !self.display_current_wpm,
             UIMessage::ToggleTimer => self.display_timer = !self.display_timer,
         }
@@ -340,13 +359,41 @@ impl Application for TypingTest {
             .push(timer)
             .push(retry);
 
+        let test_lengths = Row::new()
+            .spacing(10)
+            .push(Radio::new(
+                TestLength::Length(30),
+                "30 secs",
+                self.selected_test_length,
+                UIMessage::TestLengthChanged,
+            ))
+            .push(Radio::new(
+                TestLength::Length(60),
+                "1 min",
+                self.selected_test_length,
+                UIMessage::TestLengthChanged,
+            ))
+            .push(Radio::new(
+                TestLength::Length(120),
+                "2 mins",
+                self.selected_test_length,
+                UIMessage::TestLengthChanged,
+            ))
+            .push(Radio::new(
+                TestLength::Length(300),
+                "5 mins",
+                self.selected_test_length,
+                UIMessage::TestLengthChanged,
+            ));
+
         let mut main_view = Column::new()
             .spacing(20)
             .align_items(Align::Center)
             .max_width(600)
             .push(title)
             .push(line_display)
-            .push(typing_display);
+            .push(typing_display)
+            .push(test_lengths);
 
         // Show statistics if the test is completed
         if self.state == TestState::Complete {
