@@ -5,5 +5,10 @@ authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-iced = { git = "https://github.com/hecrj/iced", rev = "9ba4cfd23f4620bab93df9616617643604db2c79", features = ["async-std"] }
 rand = "0.7"
+
+[dependencies.iced]
+git = "https://github.com/hecrj/iced"
+rev = "9ba4cfd23f4620bab93df9616617643604db2c79"
+default-features = false
+features = ["async-std", "glow", "glow_default_system_font"]
