@@ -48,8 +48,10 @@ struct TypingTest {
     next_line: Vec<Word>,
     stats: Stats,
     display_current_wpm: bool,
+    display_timer: bool,
     text_input: text_input::State,
     wpm_button: button::State,
+    timer_button: button::State,
     retry_button: button::State,
 }
 
@@ -71,8 +73,10 @@ impl Default for TypingTest {
             current_word: String::new(),
             stats: Stats::default(),
             display_current_wpm: true,
+            display_timer: true,
             text_input: text_input::State::default(),
             wpm_button: button::State::default(),
+            timer_button: button::State::default(),
             retry_button: button::State::default(),
         }
     }
@@ -189,6 +193,7 @@ enum UIMessage {
     TimerTick(Instant),
     InputChanged(String),
     ToggleCurrentWPM,
+    ToggleTimer,
 }
 
 impl Application for TypingTest {
@@ -241,6 +246,7 @@ impl Application for TypingTest {
                 self.current_word = s;
             }
             UIMessage::ToggleCurrentWPM => self.display_current_wpm = !self.display_current_wpm,
+            UIMessage::ToggleTimer => self.display_timer = !self.display_timer,
         }
 
         Command::none()
@@ -305,9 +311,25 @@ impl Application for TypingTest {
         .min_width(100)
         .on_press(UIMessage::ToggleCurrentWPM);
 
-        let timer = Text::new(format_mm_ss(self.remaining_time_secs));
-        let retry =
-            Button::new(&mut self.retry_button, Text::new("Retry")).on_press(UIMessage::Reset);
+        let timer_text = if self.display_timer {
+            format_mm_ss(self.remaining_time_secs)
+        } else {
+            String::from(" ")
+        };
+
+        let timer = Button::new(
+            &mut self.timer_button,
+            Text::new(timer_text).horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .min_width(75)
+        .on_press(UIMessage::ToggleTimer);
+
+        let retry = Button::new(
+            &mut self.retry_button,
+            Text::new("Retry").horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .min_width(75)
+        .on_press(UIMessage::Reset);
 
         let typing_display = Row::new()
             .spacing(10)
