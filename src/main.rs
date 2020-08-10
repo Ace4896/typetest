@@ -273,7 +273,7 @@ impl Application for TypingTest {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        const TICK_DURATION: Duration = Duration::from_millis(10);
+        const TICK_DURATION: Duration = Duration::from_millis(100);
 
         match self.state {
             TestState::Inactive | TestState::Complete => Subscription::none(),
