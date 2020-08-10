@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use iced::{
-    button, executor, text_input, time, Align, Application, Button, Color, Column, Command, Row,
-    Settings, Subscription, Text, TextInput, Container, Length,
+    button, executor, text_input, time, Align, Application, Button, Color, Column, Command,
+    Container, Length, Row, Settings, Subscription, Text, TextInput,
 };
 
 const TEST_TIME_SECS: u32 = 60;
@@ -128,10 +128,32 @@ enum WordState {
 
 #[derive(Default)]
 struct Stats {
-    correct_chars: u32,
-    correct_words: u32,
-    incorrect_chars: u32,
-    incorrect_words: u32,
+    pub correct_chars: u32,
+    pub correct_words: u32,
+    pub incorrect_chars: u32,
+    pub incorrect_words: u32,
+}
+
+impl Stats {
+    pub fn current_wpm(&self, elapsed_secs: u32, total_secs: u32) -> u32 {
+        let unnormalised = self.correct_chars as f32 / 5.0;
+        let normalised = unnormalised / (elapsed_secs as f32 / total_secs as f32);
+        normalised as u32
+    }
+
+    pub fn final_wpm(&self) -> u32 {
+        self.correct_chars / 5
+    }
+
+    pub fn accuracy(&self) -> f32 {
+        let total_chars = self.correct_chars + self.incorrect_chars;
+        if total_chars == 0 {
+            return 100.0;
+        }
+
+        let total_chars = total_chars as f32;
+        self.correct_chars as f32 / total_chars * 100.0
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -156,12 +178,7 @@ impl Application for TypingTest {
 
     fn update(&mut self, message: Self::Message) -> iced::Command<Self::Message> {
         match message {
-            UIMessage::Reset => {
-                self.state = TestState::Inactive;
-                self.remaining_time_secs = TEST_TIME_SECS;
-                self.current_line = generate_line(&self.word_pool);
-                self.next_line = generate_line(&self.word_pool);
-            }
+            UIMessage::Reset => *self = TypingTest::default(),
             UIMessage::Tick => {
                 self.remaining_time_secs -= 1;
 
@@ -206,8 +223,7 @@ impl Application for TypingTest {
             format!("{}:{:0>2}", secs / 60, secs % 60)
         }
 
-        let title = Text::new("Typing Test")
-            .size(40);
+        let title = Text::new("Typing Test").size(40);
 
         let current_line = self
             .current_line
@@ -243,12 +259,33 @@ impl Application for TypingTest {
             .push(timer)
             .push(retry);
 
+        // let wpm_display = Text::new(format!("{} WPM", self.stats.current_wpm(TEST_TIME_SECS - self.remaining_time_secs, TEST_TIME_SECS))).size(16);
+
+        let correct_display = Text::new(format!(
+            "Correct Words: {} ({ } Characters)",
+            self.stats.correct_words, self.stats.correct_chars
+        ));
+
+        let incorrect_display = Text::new(format!(
+            "Incorrect Words: {} ({ } Characters)",
+            self.stats.incorrect_words, self.stats.incorrect_chars
+        ));
+
+        let accuracy_display = Text::new(format!("Accuracy: {:.2}%", self.stats.accuracy()));
+
+        let stats_display = Column::new()
+            // .push(wpm_display)
+            .push(correct_display)
+            .push(incorrect_display)
+            .push(accuracy_display);
+
         let main_view = Column::new()
             .spacing(20)
             .align_items(Align::Center)
             .push(title)
             .push(line_display)
-            .push(typing_display);
+            .push(typing_display)
+            .push(stats_display);
 
         Container::new(main_view)
             .padding(10)
