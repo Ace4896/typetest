@@ -5,8 +5,6 @@ use iced::{
     Container, HorizontalAlignment, Length, Radio, Row, Settings, Subscription, Text, TextInput,
 };
 
-use rand::prelude::*;
-
 mod word_pool;
 
 const MAX_LINE_LENGTH: usize = 60;
@@ -24,7 +22,8 @@ fn generate_line(words: &[String]) -> Vec<Word> {
     let mut final_vec = Vec::new();
 
     loop {
-        let word = words.choose(&mut thread_rng()).unwrap();
+        let index = fastrand::usize(..words.len());
+        let word = &words[index];
         total_chars += word.len();
         if total_chars > MAX_LINE_LENGTH {
             break;

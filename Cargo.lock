@@ -1778,8 +1778,8 @@ dependencies = [
 name = "typetest"
 version = "1.0.0"
 dependencies = [
+ "fastrand",
  "iced",
- "rand",
 ]
 
 [[package]]
