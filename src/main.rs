@@ -46,7 +46,7 @@ fn generate_line(words: &[String]) -> Vec<Word> {
 struct TypingTest {
     state: TestState,
     test_start: Instant,
-    selected_test_length: Option<TestLength>,
+    selected_test_length: Option<u32>,
     test_length_secs: u32,
     remaining_time_secs: u32,
     word_pool: Vec<String>,
@@ -75,7 +75,7 @@ impl Default for TypingTest {
             next_line,
             state: TestState::Inactive,
             test_start: Instant::now(),
-            selected_test_length: Some(TestLength::Length(TEST_TIME_SECS)),
+            selected_test_length: Some(TEST_TIME_SECS),
             test_length_secs: TEST_TIME_SECS,
             remaining_time_secs: TEST_TIME_SECS,
             current_word_pos: 0,
@@ -94,7 +94,7 @@ impl Default for TypingTest {
 impl TypingTest {
     pub fn with_test_length(length_secs: u32) -> TypingTest {
         TypingTest {
-            selected_test_length: Some(TestLength::Length(length_secs)),
+            selected_test_length: Some(length_secs),
             test_length_secs: length_secs,
             remaining_time_secs: length_secs,
             ..TypingTest::default()
@@ -126,11 +126,6 @@ enum TestState {
     Inactive,
     Active,
     Complete,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum TestLength {
-    Length(u32),
 }
 
 #[derive(Clone)]
@@ -215,7 +210,7 @@ enum UIMessage {
     Reset,
     TimerTick(Instant),
     InputChanged(String),
-    TestLengthChanged(TestLength),
+    TestLengthChanged(u32),
     ToggleCurrentWPM,
     ToggleTimer,
 }
@@ -269,9 +264,7 @@ impl Application for TypingTest {
 
                 self.current_word = s;
             }
-            UIMessage::TestLengthChanged(length) => match length {
-                TestLength::Length(secs) => *self = TypingTest::with_test_length(secs),
-            },
+            UIMessage::TestLengthChanged(length) => *self = TypingTest::with_test_length(length),
             UIMessage::ToggleCurrentWPM => self.display_current_wpm = !self.display_current_wpm,
             UIMessage::ToggleTimer => self.display_timer = !self.display_timer,
         }
@@ -369,31 +362,31 @@ impl Application for TypingTest {
         let test_lengths = Row::new()
             .spacing(10)
             .push(Radio::new(
-                TestLength::Length(10),
+                10,
                 "10 secs",
                 self.selected_test_length,
                 UIMessage::TestLengthChanged,
             ))
             .push(Radio::new(
-                TestLength::Length(30),
+                30,
                 "30 secs",
                 self.selected_test_length,
                 UIMessage::TestLengthChanged,
             ))
             .push(Radio::new(
-                TestLength::Length(60),
+                60,
                 "1 min",
                 self.selected_test_length,
                 UIMessage::TestLengthChanged,
             ))
             .push(Radio::new(
-                TestLength::Length(120),
+                120,
                 "2 mins",
                 self.selected_test_length,
                 UIMessage::TestLengthChanged,
             ))
             .push(Radio::new(
-                TestLength::Length(300),
+                300,
                 "5 mins",
                 self.selected_test_length,
                 UIMessage::TestLengthChanged,
