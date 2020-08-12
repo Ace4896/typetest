@@ -289,23 +289,23 @@ impl Application for TypingTest {
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
+        #[inline]
         fn format_mm_ss(secs: u32) -> String {
             format!("{}:{:0>2}", secs / 60, secs % 60)
         }
 
+        #[inline]
+        fn words_to_row(words: &[Word]) -> Row<UIMessage> {
+            words
+                .iter()
+                .map(Text::from)
+                .fold(Row::new().spacing(5), |row, word| row.push(word))
+        }
+
         let title = Text::new("Typing Test").size(40);
 
-        let current_line = self
-            .current_line
-            .iter()
-            .map(Text::from)
-            .fold(Row::new().spacing(5), |row, word| row.push(word));
-
-        let next_line = self
-            .next_line
-            .iter()
-            .map(Text::from)
-            .fold(Row::new().spacing(5), |row, word| row.push(word));
+        let current_line = words_to_row(&self.current_line);
+        let next_line = words_to_row(&self.next_line);
 
         let line_display = Column::new()
             .spacing(5)
