@@ -151,7 +151,7 @@ impl From<&Word> for Text {
             WordState::Incorrect => RED,
         };
 
-        Text::new(word.word.clone()).color(color)
+        Text::new(&word.word).color(color)
     }
 }
 
