@@ -1,6 +1,9 @@
 #![cfg_attr(debug_assertions, windows_subsystem = "windows")]
 
-use std::time::{Duration, Instant};
+use std::{
+    mem,
+    time::{Duration, Instant},
+};
 
 use iced::{
     button, executor, text_input, time, Align, Application, Button, Color, Column, Command,
@@ -109,7 +112,7 @@ impl TypingTest {
         self.current_word_pos += 1;
         if self.current_word_pos == self.current_line.len() {
             self.current_word_pos = 0;
-            self.current_line = self.next_line.clone();
+            mem::swap(&mut self.current_line, &mut self.next_line);
             self.next_line = generate_line(&self.word_pool);
         }
     }
