@@ -13,3 +13,5 @@ git clone https://github.com/Ace4896/typetest.git
 cd typetest
 cargo run --release
 ```
+
+**NOTE**: Linux users may want to look [here](https://github.com/hecrj/iced/issues/256) if there are linking errors due to missing dependencies.
