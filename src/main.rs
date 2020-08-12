@@ -29,12 +29,15 @@ fn generate_line(words: &[String]) -> Vec<Word> {
     loop {
         let index = fastrand::usize(..words.len());
         let word = &words[index];
-        total_chars += word.len();
-        if total_chars > MAX_LINE_LENGTH {
-            break;
-        }
 
-        final_vec.push(word.into());
+        if !final_vec.iter().any(|w: &Word| w.word.eq(word)) {
+            total_chars += word.len();
+            if total_chars > MAX_LINE_LENGTH {
+                break;
+            }
+
+            final_vec.push(word.into());
+        }
     }
 
     final_vec
