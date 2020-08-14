@@ -22,25 +22,23 @@ fn main() {
     TypingTest::run(Settings::default());
 }
 
-fn generate_line(words: &[String]) -> Vec<Word> {
+fn generate_line(words: &[String], line: &mut Vec<Word>) {
     let mut total_chars = 0;
-    let mut final_vec = Vec::new();
+    line.clear();
 
     loop {
         let index = fastrand::usize(..words.len());
         let word = &words[index];
 
-        if !final_vec.iter().any(|w: &Word| w.word.eq(word)) {
+        if !line.iter().any(|w: &Word| w.word.eq(word)) {
             total_chars += word.len();
             if total_chars > MAX_LINE_LENGTH {
                 break;
             }
 
-            final_vec.push(word.into());
+            line.push(word.into());
         }
     }
-
-    final_vec
 }
 
 struct TypingTest {
@@ -66,8 +64,10 @@ struct TypingTest {
 impl Default for TypingTest {
     fn default() -> Self {
         let word_pool = word_pool::default_word_pool();
-        let current_line = generate_line(&word_pool);
-        let next_line = generate_line(&word_pool);
+        let mut current_line = Vec::new();
+        let mut next_line = Vec::new();
+        generate_line(&word_pool, &mut current_line);
+        generate_line(&word_pool, &mut next_line);
 
         TypingTest {
             word_pool,
@@ -116,7 +116,7 @@ impl TypingTest {
         if self.current_word_pos == self.current_line.len() {
             self.current_word_pos = 0;
             mem::swap(&mut self.current_line, &mut self.next_line);
-            self.next_line = generate_line(&self.word_pool);
+            generate_line(&self.word_pool, &mut self.next_line);
         }
     }
 }
