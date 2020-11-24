@@ -15,7 +15,7 @@ use typetest_core::{
 
 use crate::{theme::TypeTestTheme, AppMessage};
 
-const MAX_CHARS: usize = 50;
+const MAX_CHARS: usize = 60;
 
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
@@ -234,7 +234,7 @@ impl TypingTestState {
             .spacing(5)
             .push(current_line)
             .push(next_line)
-            .max_width(500);
+            .max_width(600);
 
         let input_box = TextInput::new(&mut self.input_box, "", &self.current_input, |s| {
             AppMessage::TypingTest(TypingTestMessage::InputChanged(s))
@@ -283,6 +283,7 @@ impl TypingTestState {
         let typing_area = Row::new()
             .spacing(10)
             .align_items(Align::Center)
+            .max_width(600)
             .push(input_box)
             .push(wpm_button)
             .push(timer_button)
