@@ -3,14 +3,9 @@
 mod widgets;
 use widgets::typing_test::{TypingTestMessage, TypingTestState};
 
-use std::{
-    mem,
-    time::{Duration, Instant},
-};
-
 use iced::{
-    button, executor, text_input, time, Align, Application, Button, Color, Column, Command,
-    Container, HorizontalAlignment, Length, Radio, Row, Settings, Subscription, Text, TextInput,
+    executor, Align, Application, Color, Column, Command, Container, Element, Length, Settings,
+    Subscription, Text,
 };
 
 /// Represents the different pages in the application.
@@ -31,6 +26,7 @@ enum AppMessage {
 struct TypeTestApp {
     current_page: Page,
     typing_test_state: TypingTestState,
+    debug: bool,
 }
 
 impl TypeTestApp {
@@ -38,6 +34,7 @@ impl TypeTestApp {
         TypeTestApp {
             current_page: Page::TypingTest,
             typing_test_state: TypingTestState::new(),
+            debug: true,
         }
     }
 }
@@ -60,15 +57,45 @@ impl Application for TypeTestApp {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            AppMessage::Navigate(_) => Command::none(), // TODO: Page navigation
+            AppMessage::Navigate(page) => {
+                self.current_page = page;
+                Command::none()
+            }
             AppMessage::TypingTest(m) => self.typing_test_state.update(m),
         }
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
-        match self.current_page {
+        let title = Text::new("TypeTest").size(40);
+
+        let inner_view = match self.current_page {
             Page::TypingTest => self.typing_test_state.view(),
-            _ => Text::new("Unknown Page").into(),
+            page => Text::new(format!("Unknown Page {:?}", page)).into(),
+        };
+
+        let inner_container = Container::new(inner_view)
+            .padding(10)
+            .height(Length::Fill)
+            .width(Length::Fill)
+            .align_x(Align::Center)
+            .align_y(Align::Center);
+
+        let main_view = Column::new()
+            .align_items(Align::Center)
+            .height(Length::Fill)
+            .push(title)
+            .push(inner_container);
+
+        let final_view: Element<_> = Container::new(main_view)
+            .padding(10)
+            .height(Length::Fill)
+            .width(Length::Fill)
+            .into();
+
+        if self.debug {
+            final_view.explain(Color::BLACK)
+        } else {
+            final_view
         }
     }
 
