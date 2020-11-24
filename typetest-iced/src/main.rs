@@ -92,7 +92,7 @@ impl Application for TypeTestApp {
             .push(inner_container);
 
         let final_view: Element<_> = Container::new(main_view)
-            .padding(10)
+            .padding(20)
             .height(Length::Fill)
             .width(Length::Fill)
             .into();
