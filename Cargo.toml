@@ -11,6 +11,6 @@ fastrand = "1.4"
 # TODO: Use next version of Iced once available
 [dependencies.iced]
 git = "https://github.com/hecrj/iced"
-rev = "9ba4cfd23f4620bab93df9616617643604db2c79"
+rev = "8f081bad7756e16a4eb0ca4dcb1144fc47de5e9b"
 default-features = false
 features = ["async-std", "glow"]

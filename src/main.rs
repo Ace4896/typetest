@@ -18,8 +18,8 @@ const TEST_TIME_SECS: u32 = 60;
 const RED: Color = Color::from_rgb(0.75, 0.0, 0.0);
 const GREEN: Color = Color::from_rgb(0.0, 0.75, 0.0);
 
-fn main() {
-    TypingTest::run(Settings::default());
+fn main() -> Result<(), iced::Error> {
+    TypingTest::run(Settings::default())
 }
 
 fn generate_line(words: &[String], line: &mut Vec<Word>) {
