@@ -2,7 +2,7 @@
 
 An offline typing test, written using Rust and Iced. Inspired by [typetest.io](https://typetest.io/) and [10fastfingers.com](https://10fastfingers.com/).
 
-![Demo](demo.gif)
+![Demo](docs/demo.gif)
 
 ## Usage
 
