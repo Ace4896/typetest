@@ -1,5 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod widgets;
+use widgets::{results::ResultsState, typing_test::{TypingTestMessage, TypingTestState}};
+
 use std::{
     mem,
     time::{Duration, Instant},
@@ -21,17 +24,21 @@ enum Page {
     Results(ResultsState),
 }
 
-/// Represents the current state for a typing test.
-struct TypingTestState {} // TODO: widget states, other info that needs to be stored here
-
-/// Represents the current state for a results page.
-struct ResultsState {} // TODO: widget states, other info that needs to be stored here
-
 /// Represents the main state of the application.
-struct TypeTest {
+struct TypeTestApp {
     current_page: Page,
-    word_gen: Box<dyn WordGenerator>,
-    current_stats: TestStatistics,
+}
+
+/// Top-level enum for the messages that can be sent in this application.
+#[derive(Clone)]
+enum AppMessage {
+    TypingTest(TypingTestMessage),
+}
+
+impl From<TypingTestMessage> for AppMessage {
+    fn from(message: TypingTestMessage) -> Self {
+        AppMessage::TypingTest(message)
+    }
 }
 
 fn main() -> Result<(), iced::Error> {
