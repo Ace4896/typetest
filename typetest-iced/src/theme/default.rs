@@ -11,6 +11,7 @@ impl DefaultTheme {
     pub(crate) const fn new() -> DefaultTheme {
         DefaultTheme {
             color_palette: ColorPalette {
+                text_default: Color::BLACK,
                 correct: Color::from_rgb(0.0, 0.75, 0.0),
                 incorrect: Color::from_rgb(0.75, 0.0, 0.0)
             }

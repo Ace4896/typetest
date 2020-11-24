@@ -1,4 +1,7 @@
-use std::time::{Duration, Instant};
+use std::{
+    mem,
+    time::{Duration, Instant},
+};
 
 use iced::{
     button, text_input, time, Align, Button, Column, Command, Element, HorizontalAlignment, Row,
@@ -7,10 +10,12 @@ use iced::{
 
 use typetest_core::{
     stats::TestStatistics,
-    word_gen::{random::RandomWordGenerator, WordGenerator},
+    word_gen::{random::RandomWordGenerator, DisplayedWord, WordGenerator, WordStatus},
 };
 
 use crate::{theme::TypeTestTheme, AppMessage};
+
+const MAX_CHARS: usize = 50;
 
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
@@ -37,6 +42,10 @@ pub(crate) struct TypingTestState {
     pub(crate) current_stats: TestStatistics,
     pub(crate) status: TypingTestStatus,
 
+    current_pos: usize,
+    current_line: Vec<DisplayedWord>,
+    next_line: Vec<DisplayedWord>,
+
     current_input: String,
     test_start: Instant,
     test_length_seconds: u64,
@@ -57,10 +66,22 @@ pub(crate) struct TypingTestState {
 
 impl TypingTestState {
     pub(crate) fn new() -> TypingTestState {
+        let mut word_gen = Box::new(RandomWordGenerator::default());
+        let mut current_line = Vec::new();
+        let mut next_line = Vec::new();
+
+        word_gen.fill_words(&mut current_line, MAX_CHARS);
+        word_gen.fill_words(&mut next_line, MAX_CHARS);
+
         TypingTestState {
-            word_gen: Box::new(RandomWordGenerator::default()),
+            word_gen,
+            current_line,
+            next_line,
+
             current_stats: TestStatistics::default(),
             status: TypingTestStatus::NotStarted,
+
+            current_pos: 0,
 
             current_input: String::new(),
             test_start: Instant::now(),
@@ -90,6 +111,9 @@ impl TypingTestState {
 
                 let diff = i - self.test_start;
                 self.remaining_seconds = self.test_length_seconds - diff.as_secs();
+                if diff.as_secs() > 0 {
+                    self.current_stats.update_wpm(diff.as_secs());
+                }
 
                 if self.remaining_seconds == 0 {
                     self.status = TypingTestStatus::Finished;
@@ -106,15 +130,42 @@ impl TypingTestState {
                     self.test_start = Instant::now();
                 }
 
+                // If it ends in a space, prepare to submit the word
                 if s.ends_with(' ') {
                     let trimmed = s.trim();
                     if !trimmed.is_empty() {
-                        // TODO: Word list
-                        dbg!(trimmed);
-                        self.current_stats.submit_word(trimmed, trimmed);
+                        self.current_stats
+                            .submit_word(&self.current_line[self.current_pos].word, trimmed);
+
+                        // TODO: submit_word should return true/false
+                        self.current_line[self.current_pos].status = if &self.current_line[self.current_pos].word == trimmed {
+                            WordStatus::Correct
+                        } else {
+                            WordStatus::Incorrect
+                        };
+
+                        if self.current_pos >= self.current_line.len() - 1 {
+                            self.current_pos = 0;
+                            mem::swap(&mut self.current_line, &mut self.next_line);
+                            self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
+
+                            // If we're using a finite word generator and the next line is empty, test is done
+                            if self.next_line.is_empty() {
+                                self.status = TypingTestStatus::Finished;
+                            }
+                        } else {
+                            self.current_pos += 1;
+                        }
                     }
 
                     s.clear();
+                } else {
+                    // If it does not end in a space, just check if the word is correct so far
+                    self.current_line[self.current_pos].status = if self.current_line[self.current_pos].word.starts_with(&s) {
+                        WordStatus::NotTyped
+                    } else {
+                        WordStatus::Incorrect
+                    };
                 }
 
                 self.current_input = s;
@@ -125,15 +176,23 @@ impl TypingTestState {
                 self.status = TypingTestStatus::NotStarted;
                 self.word_gen.prepare_for_retry();
                 self.current_stats.reset();
+                self.current_pos = 0;
                 self.current_input.clear();
                 self.remaining_seconds = self.test_length_seconds;
+
+                self.word_gen.fill_words(&mut self.current_line, MAX_CHARS);
+                self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
             }
             TypingTestMessage::NextTest => {
                 self.status = TypingTestStatus::NotStarted;
                 self.word_gen.prepare_for_next_test();
                 self.current_stats.reset();
+                self.current_pos = 0;
                 self.current_input.clear();
                 self.remaining_seconds = self.test_length_seconds;
+
+                self.word_gen.fill_words(&mut self.current_line, MAX_CHARS);
+                self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
             }
         }
 
@@ -141,7 +200,10 @@ impl TypingTestState {
     }
 
     /// Creates the view for the current `TypingTestState`.
-    pub(crate) fn view(&mut self, theme: &Box<dyn TypeTestTheme>) -> Element<AppMessage> {
+    pub(crate) fn view<'a>(
+        &'a mut self,
+        theme: &'a Box<dyn TypeTestTheme>,
+    ) -> Element<'a, AppMessage> {
         if self.status == TypingTestStatus::Finished {
             self.results_widget(theme)
         } else {
@@ -151,7 +213,7 @@ impl TypingTestState {
 
     /// Handles subscriptions for the typing test screen.
     pub(crate) fn subscription(&self) -> Subscription<AppMessage> {
-        const TICK_DURATION: Duration = Duration::from_millis(100);
+        const TICK_DURATION: Duration = Duration::from_secs(1);
 
         match self.status {
             TypingTestStatus::NotStarted | TypingTestStatus::Finished => Subscription::none(),
@@ -161,7 +223,19 @@ impl TypingTestState {
     }
 
     /// Builds the typing test widget.
-    fn typing_test_widget(&mut self, _theme: &Box<dyn TypeTestTheme>) -> Element<AppMessage> {
+    fn typing_test_widget<'a>(
+        &'a mut self,
+        theme: &'a Box<dyn TypeTestTheme>,
+    ) -> Element<'a, AppMessage> {
+        let current_line = words_to_displayed_row(&self.current_line, theme);
+        let next_line = words_to_displayed_row(&self.next_line, theme);
+
+        let line_display = Column::new()
+            .spacing(5)
+            .push(current_line)
+            .push(next_line)
+            .max_width(500);
+
         let input_box = TextInput::new(&mut self.input_box, "", &self.current_input, |s| {
             AppMessage::TypingTest(TypingTestMessage::InputChanged(s))
         })
@@ -214,7 +288,11 @@ impl TypingTestState {
             .push(timer_button)
             .push(redo_button);
 
-        typing_area.into()
+        Column::new()
+            .spacing(20)
+            .push(line_display)
+            .push(typing_area)
+            .into()
     }
 
     /// Builds the results widget.
@@ -288,4 +366,26 @@ impl TypingTestState {
             .push(controls)
             .into()
     }
+}
+
+fn word_to_iced_text(word: &DisplayedWord, theme: &Box<dyn TypeTestTheme>) -> Text {
+    let colors = theme.color_palette();
+    let color = match word.status {
+        WordStatus::NotTyped => colors.text_default,
+        WordStatus::Correct => colors.correct,
+        WordStatus::Incorrect => colors.incorrect,
+    };
+
+    Text::new(&word.word).color(color)
+}
+
+fn words_to_displayed_row<'a>(
+    words: &'a [DisplayedWord],
+    theme: &'a Box<dyn TypeTestTheme>,
+) -> Row<'a, AppMessage> {
+    words
+        .iter()
+        .map(|w| word_to_iced_text(w, theme))
+        .fold(Row::new().spacing(5), |row, w| row.push(w))
+        .into()
 }
