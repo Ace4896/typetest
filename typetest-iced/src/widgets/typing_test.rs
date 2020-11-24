@@ -109,10 +109,16 @@ impl TypingTestState {
                     return Command::none();
                 }
 
-                let diff = i - self.test_start;
-                self.remaining_seconds = self.test_length_seconds - diff.as_secs();
-                if diff.as_secs() > 0 {
-                    self.current_stats.update_wpm(diff.as_secs());
+                let elapsed = i
+                    .checked_duration_since(self.test_start)
+                    .unwrap_or_default()
+                    .as_secs();
+
+                let new_remaining = self.test_length_seconds - elapsed;
+                if self.remaining_seconds != new_remaining {
+                    self.current_stats
+                        .update_wpm(self.remaining_seconds - new_remaining);
+                    self.remaining_seconds = new_remaining;
                 }
 
                 if self.remaining_seconds == 0 {
@@ -138,11 +144,12 @@ impl TypingTestState {
                             .submit_word(&self.current_line[self.current_pos].word, trimmed);
 
                         // TODO: submit_word should return true/false
-                        self.current_line[self.current_pos].status = if &self.current_line[self.current_pos].word == trimmed {
-                            WordStatus::Correct
-                        } else {
-                            WordStatus::Incorrect
-                        };
+                        self.current_line[self.current_pos].status =
+                            if &self.current_line[self.current_pos].word == trimmed {
+                                WordStatus::Correct
+                            } else {
+                                WordStatus::Incorrect
+                            };
 
                         if self.current_pos >= self.current_line.len() - 1 {
                             self.current_pos = 0;
@@ -161,11 +168,12 @@ impl TypingTestState {
                     s.clear();
                 } else {
                     // If it does not end in a space, just check if the word is correct so far
-                    self.current_line[self.current_pos].status = if self.current_line[self.current_pos].word.starts_with(&s) {
-                        WordStatus::NotTyped
-                    } else {
-                        WordStatus::Incorrect
-                    };
+                    self.current_line[self.current_pos].status =
+                        if self.current_line[self.current_pos].word.starts_with(&s) {
+                            WordStatus::NotTyped
+                        } else {
+                            WordStatus::Incorrect
+                        };
                 }
 
                 self.current_input = s;
@@ -252,9 +260,7 @@ impl TypingTestState {
             Text::new(wpm_text).horizontal_alignment(HorizontalAlignment::Center),
         )
         .min_width(100)
-        .on_press(AppMessage::TypingTest(
-            TypingTestMessage::ToggleWPMDisplay,
-        ));
+        .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleWPMDisplay));
 
         let timer_text = if self.show_timer {
             format!(
@@ -271,7 +277,9 @@ impl TypingTestState {
             Text::new(timer_text).horizontal_alignment(HorizontalAlignment::Center),
         )
         .min_width(100)
-        .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleTimerDisplay));
+        .on_press(AppMessage::TypingTest(
+            TypingTestMessage::ToggleTimerDisplay,
+        ));
 
         let redo_button = Button::new(
             &mut self.redo_button,
