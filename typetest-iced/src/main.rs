@@ -30,7 +30,6 @@ struct TypeTestApp {
     current_page: Page,
     current_theme: Box<dyn TypeTestTheme>,
     typing_test_state: TypingTestState,
-    debug: bool,
 }
 
 impl TypeTestApp {
@@ -39,7 +38,6 @@ impl TypeTestApp {
             current_page: Page::TypingTest,
             current_theme: Box::new(DefaultTheme::new()),
             typing_test_state: TypingTestState::new(),
-            debug: true,
         }
     }
 }
@@ -91,17 +89,11 @@ impl Application for TypeTestApp {
             .push(title)
             .push(inner_container);
 
-        let final_view: Element<_> = Container::new(main_view)
+        Container::new(main_view)
             .padding(20)
             .height(Length::Fill)
             .width(Length::Fill)
-            .into();
-
-        if self.debug {
-            final_view.explain(Color::BLACK)
-        } else {
-            final_view
-        }
+            .into()
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
