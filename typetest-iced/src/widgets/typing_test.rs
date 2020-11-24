@@ -85,8 +85,8 @@ impl TypingTestState {
 
             current_input: String::new(),
             test_start: Instant::now(),
-            test_length_seconds: 5,
-            remaining_seconds: 5,
+            test_length_seconds: 60,
+            remaining_seconds: 60,
 
             show_wpm: true,
             show_timer: true,
