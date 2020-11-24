@@ -253,7 +253,7 @@ impl TypingTestState {
         )
         .min_width(100)
         .on_press(AppMessage::TypingTest(
-            TypingTestMessage::ToggleTimerDisplay,
+            TypingTestMessage::ToggleWPMDisplay,
         ));
 
         let timer_text = if self.show_timer {
@@ -271,7 +271,7 @@ impl TypingTestState {
             Text::new(timer_text).horizontal_alignment(HorizontalAlignment::Center),
         )
         .min_width(100)
-        .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleWPMDisplay));
+        .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleTimerDisplay));
 
         let redo_button = Button::new(
             &mut self.redo_button,
