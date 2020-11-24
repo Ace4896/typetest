@@ -1886,7 +1886,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "typetest"
+name = "typetest-iced"
 version = "1.0.0"
 dependencies = [
  "fastrand",
