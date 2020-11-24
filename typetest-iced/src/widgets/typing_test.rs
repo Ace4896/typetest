@@ -1,7 +1,8 @@
 use std::time::{Duration, Instant};
 
 use iced::{
-    button, text_input, time, Align, Button, Command, Element, Row, Subscription, Text, TextInput,
+    button, text_input, time, Align, Button, Command, Element, HorizontalAlignment, Row,
+    Subscription, Text, TextInput,
 };
 
 use typetest_core::{
@@ -155,12 +156,10 @@ impl TypingTestState {
 
     /// Builds the typing test widget.
     fn typing_test_widget(&mut self) -> Element<AppMessage> {
-        let input_box = TextInput::new(
-            &mut self.input_box,
-            "",
-            &self.current_input,
-            |s| AppMessage::TypingTest(TypingTestMessage::InputChanged(s)),
-        );
+        let input_box = TextInput::new(&mut self.input_box, "", &self.current_input, |s| {
+            AppMessage::TypingTest(TypingTestMessage::InputChanged(s))
+        })
+        .padding(5);
 
         let wpm_text = if self.show_wpm {
             format!("{} WPM", self.current_stats.effective_wpm)
@@ -168,11 +167,14 @@ impl TypingTestState {
             String::from(" ")
         };
 
-        let wpm_button = Button::new(&mut self.wpm_button, Text::new(wpm_text))
-            .min_width(100)
-            .on_press(AppMessage::TypingTest(
-                TypingTestMessage::ToggleTimerDisplay,
-            ));
+        let wpm_button = Button::new(
+            &mut self.wpm_button,
+            Text::new(wpm_text).horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .min_width(100)
+        .on_press(AppMessage::TypingTest(
+            TypingTestMessage::ToggleTimerDisplay,
+        ));
 
         let timer_text = if self.show_timer {
             format!(
@@ -184,13 +186,19 @@ impl TypingTestState {
             String::from(" ")
         };
 
-        let timer_button = Button::new(&mut self.timer_button, Text::new(timer_text))
-            .min_width(100)
-            .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleWPMDisplay));
+        let timer_button = Button::new(
+            &mut self.timer_button,
+            Text::new(timer_text).horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .min_width(100)
+        .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleWPMDisplay));
 
-        let redo_button = Button::new(&mut self.redo_button, Text::new("Redo"))
-            .min_width(100)
-            .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
+        let redo_button = Button::new(
+            &mut self.redo_button,
+            Text::new("Redo").horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .min_width(100)
+        .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
 
         let typing_area = Row::new()
             .spacing(10)
