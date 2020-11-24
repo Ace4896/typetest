@@ -1946,6 +1946,7 @@ version = "1.0.0"
 dependencies = [
  "fastrand",
  "iced",
+ "typetest-core",
 ]
 
 [[package]]

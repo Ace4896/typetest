@@ -6,6 +6,8 @@ edition = "2018"
 description = "An offline typing test, written using Iced."
 
 [dependencies]
+typetest-core = { path = "../typetest-core" }
+
 fastrand = "1.4"
 
 # TODO: Use next version of Iced once available

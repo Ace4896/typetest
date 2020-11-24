@@ -71,8 +71,12 @@ impl TestStatistics {
             // Otherwise, spacebar usage is incorrect, and we have missing/extra chars
             match expected.len().cmp(&actual.len()) {
                 Ordering::Equal => self.correct_chars += 1,
-                Ordering::Greater => self.incorrect_chars += 1 + (expected.len() - actual.len()) as u64,
-                Ordering::Less => self.incorrect_chars += 1 + (actual.len() - expected.len()) as u64,
+                Ordering::Greater => {
+                    self.incorrect_chars += 1 + (expected.len() - actual.len()) as u64
+                }
+                Ordering::Less => {
+                    self.incorrect_chars += 1 + (actual.len() - expected.len()) as u64
+                }
             }
         }
     }
