@@ -1,5 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap};
 
+// TODO: Accuracy unit tests
+
 /// Stores the following statistics for a typing test:
 ///
 /// - No. of correct/incorrect characters
@@ -7,6 +9,7 @@ use std::{cmp::Ordering, collections::HashMap};
 /// - No. of seconds elapsed
 /// - Effective WPM since last time update
 /// - Raw WPM since last time update
+/// - Accuracy
 /// - Words which were typed incorrectly, and how often this happened
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TestStatistics {
@@ -36,6 +39,13 @@ impl TestStatistics {
         self.elapsed_seconds = 0;
         self.effective_wpm = 0;
         self.raw_wpm = 0;
+    }
+
+    /// Gets the current accuracy as a percentage.
+    ///
+    /// This isn't stored to save on calculations.
+    pub fn accuracy(&self) -> f32 {
+        (self.correct_chars as f32 / (self.correct_chars + self.incorrect_chars) as f32) * 100.0
     }
 
     /// Submits a word and compares it to the expected variant, updating the character/word statistics accordingly.

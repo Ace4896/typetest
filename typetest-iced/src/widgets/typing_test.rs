@@ -1,7 +1,7 @@
 use std::time::{Duration, Instant};
 
 use iced::{
-    button, text_input, time, Align, Button, Command, Element, HorizontalAlignment, Row,
+    button, text_input, time, Align, Button, Column, Command, Element, HorizontalAlignment, Row,
     Subscription, Text, TextInput,
 };
 
@@ -10,7 +10,7 @@ use typetest_core::{
     word_gen::{random::RandomWordGenerator, WordGenerator},
 };
 
-use crate::AppMessage;
+use crate::{theme::TypeTestTheme, AppMessage};
 
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
@@ -50,6 +50,9 @@ pub(crate) struct TypingTestState {
     wpm_button: button::State,
     timer_button: button::State,
     redo_button: button::State,
+
+    results_retry_button: button::State,
+    results_next_test_button: button::State,
 }
 
 impl TypingTestState {
@@ -61,8 +64,8 @@ impl TypingTestState {
 
             current_input: String::new(),
             test_start: Instant::now(),
-            test_length_seconds: 60,
-            remaining_seconds: 60,
+            test_length_seconds: 5,
+            remaining_seconds: 5,
 
             show_wpm: true,
             show_timer: true,
@@ -71,6 +74,9 @@ impl TypingTestState {
             wpm_button: button::State::new(),
             timer_button: button::State::new(),
             redo_button: button::State::new(),
+
+            results_retry_button: button::State::new(),
+            results_next_test_button: button::State::new(),
         }
     }
 
@@ -135,11 +141,11 @@ impl TypingTestState {
     }
 
     /// Creates the view for the current `TypingTestState`.
-    pub(crate) fn view(&mut self) -> Element<AppMessage> {
+    pub(crate) fn view(&mut self, theme: &Box<dyn TypeTestTheme>) -> Element<AppMessage> {
         if self.status == TypingTestStatus::Finished {
-            self.results_widget()
+            self.results_widget(theme)
         } else {
-            self.typing_test_widget()
+            self.typing_test_widget(theme)
         }
     }
 
@@ -155,7 +161,7 @@ impl TypingTestState {
     }
 
     /// Builds the typing test widget.
-    fn typing_test_widget(&mut self) -> Element<AppMessage> {
+    fn typing_test_widget(&mut self, _theme: &Box<dyn TypeTestTheme>) -> Element<AppMessage> {
         let input_box = TextInput::new(&mut self.input_box, "", &self.current_input, |s| {
             AppMessage::TypingTest(TypingTestMessage::InputChanged(s))
         })
@@ -212,7 +218,74 @@ impl TypingTestState {
     }
 
     /// Builds the results widget.
-    fn results_widget(&mut self) -> Element<AppMessage> {
-        Text::new("Results").into()
+    fn results_widget(&mut self, theme: &Box<dyn TypeTestTheme>) -> Element<AppMessage> {
+        let colors = theme.color_palette();
+
+        let wpm = Text::new(format!("{} WPM", self.current_stats.effective_wpm)).size(30);
+
+        let correct_chars_label = Text::new("Correct Characters:");
+        let correct_chars =
+            Text::new(self.current_stats.correct_chars.to_string()).color(colors.correct);
+
+        let correct_words_label = Text::new("Correct Words:");
+        let correct_words =
+            Text::new(self.current_stats.correct_words.to_string()).color(colors.correct);
+
+        let incorrect_chars_label = Text::new("Incorrect Characters:");
+        let incorrect_chars =
+            Text::new(self.current_stats.incorrect_chars.to_string()).color(colors.incorrect);
+
+        let incorrect_words_label = Text::new("Incorrect Words:");
+        let incorrect_words =
+            Text::new(self.current_stats.incorrect_words.to_string()).color(colors.incorrect);
+
+        let accuracy_label = Text::new("Accuracy:");
+        let accuracy = Text::new(format!("{:.2}%", self.current_stats.accuracy()));
+
+        let labels = Column::new()
+            .align_items(Align::End)
+            .spacing(10)
+            .push(correct_chars_label)
+            .push(incorrect_chars_label)
+            .push(correct_words_label)
+            .push(incorrect_words_label)
+            .push(accuracy_label);
+
+        let values = Column::new()
+            .align_items(Align::Start)
+            .spacing(10)
+            .push(correct_chars)
+            .push(incorrect_chars)
+            .push(correct_words)
+            .push(incorrect_words)
+            .push(accuracy);
+
+        let stats_breakdown = Row::new().spacing(10).push(labels).push(values);
+
+        let retry_button = Button::new(
+            &mut self.results_retry_button,
+            Text::new("Retry").horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .on_press(AppMessage::TypingTest(TypingTestMessage::Retry));
+
+        let next_test_button = Button::new(
+            &mut self.results_next_test_button,
+            Text::new("Next Test").horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
+
+        let controls = Row::new()
+            .align_items(Align::Center)
+            .spacing(10)
+            .push(retry_button)
+            .push(next_test_button);
+
+        Column::new()
+            .align_items(Align::Center)
+            .spacing(20)
+            .push(wpm)
+            .push(stats_breakdown)
+            .push(controls)
+            .into()
     }
 }

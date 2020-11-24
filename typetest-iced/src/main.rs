@@ -1,6 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod theme;
+
 mod widgets;
+use theme::{default::DefaultTheme, TypeTestTheme};
 use widgets::typing_test::{TypingTestMessage, TypingTestState};
 
 use iced::{
@@ -25,6 +28,7 @@ enum AppMessage {
 /// Represents the main state of the application.
 struct TypeTestApp {
     current_page: Page,
+    current_theme: Box<dyn TypeTestTheme>,
     typing_test_state: TypingTestState,
     debug: bool,
 }
@@ -33,6 +37,7 @@ impl TypeTestApp {
     fn new() -> TypeTestApp {
         TypeTestApp {
             current_page: Page::TypingTest,
+            current_theme: Box::new(DefaultTheme::new()),
             typing_test_state: TypingTestState::new(),
             debug: true,
         }
@@ -69,7 +74,7 @@ impl Application for TypeTestApp {
         let title = Text::new("TypeTest").size(40);
 
         let inner_view = match self.current_page {
-            Page::TypingTest => self.typing_test_state.view(),
+            Page::TypingTest => self.typing_test_state.view(&self.current_theme),
             page => Text::new(format!("Unknown Page {:?}", page)).into(),
         };
 
