@@ -1,14 +1,14 @@
 use iced::Color;
 
-pub(crate) mod default;
+pub mod default;
 
 #[derive(Copy, Clone, Debug)]
-pub(crate) struct ColorPalette {
-    pub(crate) text_default: Color,
-    pub(crate) correct: Color,
-    pub(crate) incorrect: Color,
+pub struct ColorPalette {
+    pub text_default: Color,
+    pub correct: Color,
+    pub incorrect: Color,
 }
 
-pub(crate) trait TypeTestTheme {
+pub trait TypeTestTheme {
     fn color_palette(&self) -> &ColorPalette;
 }

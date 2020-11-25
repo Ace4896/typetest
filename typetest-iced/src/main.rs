@@ -7,26 +7,25 @@ use theme::{default::DefaultTheme, TypeTestTheme};
 use widgets::typing_test::{TypingTestMessage, TypingTestState};
 
 use iced::{
-    executor, Align, Application, Color, Column, Command, Container, Element, Length, Settings,
-    Subscription, Text,
+    executor, Align, Application, Column, Command, Container, Length, Settings, Subscription, Text,
 };
 
 /// Represents the different pages in the application.
 #[derive(Copy, Clone, Debug)]
-enum Page {
+pub enum Page {
     TypingTest,
     Settings,
 }
 
 /// Top-level enum for the messages that can be sent in this application.
 #[derive(Clone, Debug)]
-enum AppMessage {
+pub enum AppMessage {
     Navigate(Page),
     TypingTest(TypingTestMessage),
 }
 
 /// Represents the main state of the application.
-struct TypeTestApp {
+pub struct TypeTestApp {
     current_page: Page,
     current_theme: Box<dyn TypeTestTheme>,
     typing_test_state: TypingTestState,

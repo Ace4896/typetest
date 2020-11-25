@@ -19,7 +19,7 @@ const MAX_CHARS: usize = 60;
 
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
-pub(crate) enum TypingTestMessage {
+pub enum TypingTestMessage {
     TimerTick(Instant),
     InputChanged(String),
     ToggleWPMDisplay,
@@ -30,17 +30,17 @@ pub(crate) enum TypingTestMessage {
 
 /// Represents the different statuses a typing test could be in.
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub(crate) enum TypingTestStatus {
+pub enum TypingTestStatus {
     NotStarted,
     Started,
     Finished,
 }
 
 /// Represents the current state for a typing test.
-pub(crate) struct TypingTestState {
+pub struct TypingTestState {
     word_gen: Box<dyn WordGenerator>,
-    pub(crate) current_stats: TestStatistics,
-    pub(crate) status: TypingTestStatus,
+    pub current_stats: TestStatistics,
+    pub status: TypingTestStatus,
 
     current_pos: usize,
     current_line: Vec<DisplayedWord>,
@@ -65,7 +65,7 @@ pub(crate) struct TypingTestState {
 }
 
 impl TypingTestState {
-    pub(crate) fn new() -> TypingTestState {
+    pub fn new() -> TypingTestState {
         let mut word_gen = Box::new(RandomWordGenerator::default());
         let mut current_line = Vec::new();
         let mut next_line = Vec::new();
@@ -102,7 +102,7 @@ impl TypingTestState {
     }
 
     /// Handles updates for the typing test screen.
-    pub(crate) fn update(&mut self, message: TypingTestMessage) -> Command<AppMessage> {
+    pub fn update(&mut self, message: TypingTestMessage) -> Command<AppMessage> {
         match message {
             TypingTestMessage::TimerTick(i) => {
                 if self.status != TypingTestStatus::Started {
@@ -208,10 +208,7 @@ impl TypingTestState {
     }
 
     /// Creates the view for the current `TypingTestState`.
-    pub(crate) fn view<'a>(
-        &'a mut self,
-        theme: &'a Box<dyn TypeTestTheme>,
-    ) -> Element<'a, AppMessage> {
+    pub fn view<'a>(&'a mut self, theme: &'a Box<dyn TypeTestTheme>) -> Element<'a, AppMessage> {
         if self.status == TypingTestStatus::Finished {
             self.results_widget(theme)
         } else {
@@ -220,7 +217,7 @@ impl TypingTestState {
     }
 
     /// Handles subscriptions for the typing test screen.
-    pub(crate) fn subscription(&self) -> Subscription<AppMessage> {
+    pub fn subscription(&self) -> Subscription<AppMessage> {
         const TICK_DURATION: Duration = Duration::from_secs(1);
 
         match self.status {

@@ -1,1 +1,1 @@
-pub(crate) mod typing_test;
+pub mod typing_test;
