@@ -3,12 +3,13 @@
 mod theme;
 
 mod widgets;
-use theme::{default::DefaultTheme, TypeTestTheme};
-use widgets::typing_test::{TypingTestMessage, TypingTestState};
+use theme::Themes;
 
 use iced::{
     executor, Align, Application, Column, Command, Container, Length, Settings, Subscription, Text,
 };
+
+use widgets::typing_test::{TypingTestMessage, TypingTestState};
 
 /// Represents the different pages in the application.
 #[derive(Copy, Clone, Debug)]
@@ -27,7 +28,7 @@ pub enum AppMessage {
 /// Represents the main state of the application.
 pub struct TypeTestApp {
     current_page: Page,
-    current_theme: Box<dyn TypeTestTheme>,
+    current_theme: Themes,
     typing_test_state: TypingTestState,
 }
 
@@ -35,7 +36,7 @@ impl TypeTestApp {
     fn new() -> TypeTestApp {
         TypeTestApp {
             current_page: Page::TypingTest,
-            current_theme: Box::new(DefaultTheme::new()),
+            current_theme: Themes::DefaultLight,
             typing_test_state: TypingTestState::new(),
         }
     }
@@ -68,10 +69,11 @@ impl Application for TypeTestApp {
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
+        let theme = theme::get_theme(self.current_theme);
         let title = Text::new("TypeTest").size(40);
 
         let inner_view = match self.current_page {
-            Page::TypingTest => self.typing_test_state.view(&self.current_theme),
+            Page::TypingTest => self.typing_test_state.view(theme),
             page => Text::new(format!("Unknown Page {:?}", page)).into(),
         };
 

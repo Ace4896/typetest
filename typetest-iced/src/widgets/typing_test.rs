@@ -13,7 +13,7 @@ use typetest_core::{
     word_gen::{random::RandomWordGenerator, DisplayedWord, WordGenerator, WordStatus},
 };
 
-use crate::{theme::TypeTestTheme, AppMessage};
+use crate::{theme::Theme, AppMessage};
 
 const MAX_CHARS: usize = 60;
 
@@ -208,7 +208,7 @@ impl TypingTestState {
     }
 
     /// Creates the view for the current `TypingTestState`.
-    pub fn view<'a>(&'a mut self, theme: &'a Box<dyn TypeTestTheme>) -> Element<'a, AppMessage> {
+    pub fn view<'a>(&'a mut self, theme: &'a Theme) -> Element<'a, AppMessage> {
         if self.status == TypingTestStatus::Finished {
             self.results_widget(theme)
         } else {
@@ -228,10 +228,7 @@ impl TypingTestState {
     }
 
     /// Builds the typing test widget.
-    fn typing_test_widget<'a>(
-        &'a mut self,
-        theme: &'a Box<dyn TypeTestTheme>,
-    ) -> Element<'a, AppMessage> {
+    fn typing_test_widget<'a>(&'a mut self, theme: &'a Theme) -> Element<'a, AppMessage> {
         let current_line = words_to_displayed_row(&self.current_line, theme);
         let next_line = words_to_displayed_row(&self.next_line, theme);
 
@@ -302,26 +299,24 @@ impl TypingTestState {
     }
 
     /// Builds the results widget.
-    fn results_widget(&mut self, theme: &Box<dyn TypeTestTheme>) -> Element<AppMessage> {
-        let colors = theme.color_palette();
-
+    fn results_widget(&mut self, theme: &Theme) -> Element<AppMessage> {
         let wpm = Text::new(format!("{} WPM", self.current_stats.effective_wpm)).size(30);
 
         let correct_chars_label = Text::new("Correct Characters:");
         let correct_chars =
-            Text::new(self.current_stats.correct_chars.to_string()).color(colors.correct);
+            Text::new(self.current_stats.correct_chars.to_string()).color(theme.text.correct);
 
         let correct_words_label = Text::new("Correct Words:");
         let correct_words =
-            Text::new(self.current_stats.correct_words.to_string()).color(colors.correct);
+            Text::new(self.current_stats.correct_words.to_string()).color(theme.text.correct);
 
         let incorrect_chars_label = Text::new("Incorrect Characters:");
         let incorrect_chars =
-            Text::new(self.current_stats.incorrect_chars.to_string()).color(colors.incorrect);
+            Text::new(self.current_stats.incorrect_chars.to_string()).color(theme.text.incorrect);
 
         let incorrect_words_label = Text::new("Incorrect Words:");
         let incorrect_words =
-            Text::new(self.current_stats.incorrect_words.to_string()).color(colors.incorrect);
+            Text::new(self.current_stats.incorrect_words.to_string()).color(theme.text.incorrect);
 
         let accuracy_label = Text::new("Accuracy:");
         let accuracy = Text::new(format!("{:.2}%", self.current_stats.accuracy()));
@@ -374,10 +369,10 @@ impl TypingTestState {
     }
 }
 
-fn word_to_iced_text(word: &DisplayedWord, theme: &Box<dyn TypeTestTheme>) -> Text {
-    let colors = theme.color_palette();
+fn word_to_iced_text(word: &DisplayedWord, theme: &Theme) -> Text {
+    let colors = &theme.text;
     let color = match word.status {
-        WordStatus::NotTyped => colors.text_default,
+        WordStatus::NotTyped => colors.default,
         WordStatus::Correct => colors.correct,
         WordStatus::Incorrect => colors.incorrect,
     };
@@ -385,10 +380,7 @@ fn word_to_iced_text(word: &DisplayedWord, theme: &Box<dyn TypeTestTheme>) -> Te
     Text::new(&word.word).color(color)
 }
 
-fn words_to_displayed_row<'a>(
-    words: &'a [DisplayedWord],
-    theme: &'a Box<dyn TypeTestTheme>,
-) -> Row<'a, AppMessage> {
+fn words_to_displayed_row<'a>(words: &'a [DisplayedWord], theme: &'a Theme) -> Row<'a, AppMessage> {
     words
         .iter()
         .map(|w| word_to_iced_text(w, theme))
