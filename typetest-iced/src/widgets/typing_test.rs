@@ -305,7 +305,7 @@ impl TypingTestState {
             &mut self.timer_button,
             Text::new(timer_text).horizontal_alignment(HorizontalAlignment::Center),
         )
-        .min_width(100)
+        .min_width(80)
         .on_press(AppMessage::TypingTest(
             TypingTestMessage::ToggleTimerDisplay,
         ));
@@ -314,7 +314,7 @@ impl TypingTestState {
             &mut self.redo_button,
             Text::new("Redo").horizontal_alignment(HorizontalAlignment::Center),
         )
-        .min_width(100)
+        .min_width(80)
         .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
 
         let typing_area = Row::new()
