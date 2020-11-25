@@ -143,16 +143,15 @@ impl TypingTestState {
                 if s.ends_with(' ') {
                     let trimmed = s.trim();
                     if !trimmed.is_empty() {
-                        self.current_stats
+                        let is_correct = self
+                            .current_stats
                             .submit_word(&self.current_line[self.current_pos].word, trimmed);
 
-                        // TODO: submit_word should return true/false
-                        self.current_line[self.current_pos].status =
-                            if &self.current_line[self.current_pos].word == trimmed {
-                                WordStatus::Correct
-                            } else {
-                                WordStatus::Incorrect
-                            };
+                        self.current_line[self.current_pos].status = if is_correct {
+                            WordStatus::Correct
+                        } else {
+                            WordStatus::Incorrect
+                        };
 
                         if self.current_pos >= self.current_line.len() - 1 {
                             self.current_pos = 0;

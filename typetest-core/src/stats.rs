@@ -51,15 +51,17 @@ impl TestStatistics {
     /// Submits a word and compares it to the expected variant, updating the character/word statistics accordingly.
     ///
     /// WPM is not updated here to save a few calculations.
-    pub fn submit_word(&mut self, expected: &str, actual: &str) {
+    pub fn submit_word(&mut self, expected: &str, actual: &str) -> bool {
         if expected.is_empty() {
-            return;
+            return false;
         }
 
         if expected == actual {
             // NOTE: +1 due to spacebar
             self.correct_chars += expected.len() as u64 + 1;
             self.correct_words += 1;
+
+            true
         } else {
             self.incorrect_words += 1;
             let missed_entry = self.missed_words.entry(expected.to_string()).or_insert(0);
@@ -88,6 +90,8 @@ impl TestStatistics {
                     self.incorrect_chars += 1 + (actual.len() - expected.len()) as u64
                 }
             }
+
+            false
         }
     }
 
@@ -138,10 +142,19 @@ mod tests {
     }
 
     #[test]
+    fn submit_word_with_empty_expected_word_returns_false() {
+        let mut stats = TestStatistics::default();
+        let is_correct = stats.submit_word("", "");
+
+        assert!(!is_correct);
+    }
+
+    #[test]
     fn submit_word_with_correct_word_updates_correct_stats() {
         let mut stats = TestStatistics::default();
-        stats.submit_word("REDO", "REDO");
+        let is_correct = stats.submit_word("REDO", "REDO");
 
+        assert!(is_correct);
         assert!(stats.get_missed_words().is_empty());
 
         // 4 chars for REDO, 1 for spacebar
@@ -172,7 +185,9 @@ mod tests {
     ) {
         let mut stats = TestStatistics::default();
 
-        stats.submit_word(expected, actual);
+        let is_correct = stats.submit_word(expected, actual);
+
+        assert!(!is_correct);
 
         assert_eq!(correct_chars, stats.correct_chars);
         assert_eq!(incorrect_chars, stats.incorrect_chars);
