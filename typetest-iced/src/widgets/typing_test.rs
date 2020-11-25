@@ -208,7 +208,7 @@ impl TypingTestState {
     }
 
     /// Creates the view for the current `TypingTestState`.
-    pub fn view<'a>(&'a mut self, theme: &'a Theme) -> Element<'a, AppMessage> {
+    pub fn view(&mut self, theme: &Theme) -> Element<AppMessage> {
         if self.status == TypingTestStatus::Finished {
             self.results_widget(theme)
         } else {
@@ -228,7 +228,25 @@ impl TypingTestState {
     }
 
     /// Builds the typing test widget.
-    fn typing_test_widget<'a>(&'a mut self, theme: &'a Theme) -> Element<'a, AppMessage> {
+    fn typing_test_widget(&mut self, theme: &Theme) -> Element<AppMessage> {
+        fn word_to_iced_text(word: &DisplayedWord, theme: &Theme) -> Text {
+            let color = match word.status {
+                WordStatus::NotTyped => theme.text.default,
+                WordStatus::Correct => theme.text.correct,
+                WordStatus::Incorrect => theme.text.incorrect,
+            };
+        
+            Text::new(&word.word).color(color)
+        }
+        
+        fn words_to_displayed_row<'a>(words: &'a [DisplayedWord], theme: &Theme) -> Row<'a, AppMessage> {
+            words
+                .iter()
+                .map(|w| word_to_iced_text(w, theme))
+                .fold(Row::new().spacing(5), |row, w| row.push(w))
+                .into()
+        }
+
         let current_line = words_to_displayed_row(&self.current_line, theme);
         let next_line = words_to_displayed_row(&self.next_line, theme);
 
@@ -367,23 +385,4 @@ impl TypingTestState {
             .push(controls)
             .into()
     }
-}
-
-fn word_to_iced_text(word: &DisplayedWord, theme: &Theme) -> Text {
-    let colors = &theme.text;
-    let color = match word.status {
-        WordStatus::NotTyped => colors.default,
-        WordStatus::Correct => colors.correct,
-        WordStatus::Incorrect => colors.incorrect,
-    };
-
-    Text::new(&word.word).color(color)
-}
-
-fn words_to_displayed_row<'a>(words: &'a [DisplayedWord], theme: &'a Theme) -> Row<'a, AppMessage> {
-    words
-        .iter()
-        .map(|w| word_to_iced_text(w, theme))
-        .fold(Row::new().spacing(5), |row, w| row.push(w))
-        .into()
 }
