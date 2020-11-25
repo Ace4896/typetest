@@ -36,7 +36,7 @@ impl TypeTestApp {
     fn new() -> TypeTestApp {
         TypeTestApp {
             current_page: Page::TypingTest,
-            current_theme: Theme::DefaultLight,
+            current_theme: Theme::DefaultDark,
             typing_test_state: TypingTestState::new(),
         }
     }
