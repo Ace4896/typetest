@@ -3,7 +3,7 @@
 mod theme;
 
 mod widgets;
-use theme::Themes;
+use theme::Theme;
 
 use iced::{
     executor, Align, Application, Column, Command, Container, Length, Settings, Subscription, Text,
@@ -28,7 +28,7 @@ pub enum AppMessage {
 /// Represents the main state of the application.
 pub struct TypeTestApp {
     current_page: Page,
-    current_theme: Themes,
+    current_theme: Theme,
     typing_test_state: TypingTestState,
 }
 
@@ -36,7 +36,7 @@ impl TypeTestApp {
     fn new() -> TypeTestApp {
         TypeTestApp {
             current_page: Page::TypingTest,
-            current_theme: Themes::DefaultLight,
+            current_theme: Theme::DefaultLight,
             typing_test_state: TypingTestState::new(),
         }
     }
@@ -69,11 +69,10 @@ impl Application for TypeTestApp {
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
-        let theme = theme::get_theme(self.current_theme);
         let title = Text::new("TypeTest").size(40);
 
         let inner_view = match self.current_page {
-            Page::TypingTest => self.typing_test_state.view(theme),
+            Page::TypingTest => self.typing_test_state.view(&self.current_theme),
             page => Text::new(format!("Unknown Page {:?}", page)).into(),
         };
 

@@ -4,8 +4,8 @@ use std::{
 };
 
 use iced::{
-    button, text_input, time, Align, Button, Column, Command, Element, HorizontalAlignment, Row,
-    Subscription, Text, TextInput,
+    button, text_input, time, Align, Button, Column, Command, Container, Element,
+    HorizontalAlignment, Row, Subscription, Text, TextInput,
 };
 
 use typetest_core::{
@@ -13,7 +13,10 @@ use typetest_core::{
     word_gen::{random::RandomWordGenerator, DisplayedWord, WordGenerator, WordStatus},
 };
 
-use crate::{theme::Theme, AppMessage};
+use crate::{
+    theme::{TextPalette, Theme},
+    AppMessage,
+};
 
 const MAX_CHARS: usize = 60;
 
@@ -229,26 +232,39 @@ impl TypingTestState {
 
     /// Builds the typing test widget.
     fn typing_test_widget(&mut self, theme: &Theme) -> Element<AppMessage> {
-        fn word_to_iced_text(word: &DisplayedWord, theme: &Theme) -> Text {
+        fn word_to_iced_text(word: &DisplayedWord, text_palette: &TextPalette) -> Text {
             let color = match word.status {
-                WordStatus::NotTyped => theme.text.default,
-                WordStatus::Correct => theme.text.correct,
-                WordStatus::Incorrect => theme.text.incorrect,
+                WordStatus::NotTyped => text_palette.default,
+                WordStatus::Correct => text_palette.correct,
+                WordStatus::Incorrect => text_palette.incorrect,
             };
-        
+
             Text::new(&word.word).color(color)
         }
-        
-        fn words_to_displayed_row<'a>(words: &'a [DisplayedWord], theme: &Theme) -> Row<'a, AppMessage> {
+
+        fn words_to_displayed_row<'a>(
+            words: &'a [DisplayedWord],
+            current_pos: usize,
+            theme: &Theme,
+        ) -> Row<'a, AppMessage> {
+            let text_palette = theme.text_palette();
             words
                 .iter()
-                .map(|w| word_to_iced_text(w, theme))
+                .enumerate()
+                .map(|(pos, w)| -> Element<_> {
+                    let text = word_to_iced_text(w, text_palette);
+                    if current_pos == pos {
+                        Container::new(text).style(theme.word_background()).into()
+                    } else {
+                        text.into()
+                    }
+                })
                 .fold(Row::new().spacing(5), |row, w| row.push(w))
                 .into()
         }
 
-        let current_line = words_to_displayed_row(&self.current_line, theme);
-        let next_line = words_to_displayed_row(&self.next_line, theme);
+        let current_line = words_to_displayed_row(&self.current_line, self.current_pos, theme);
+        let next_line = words_to_displayed_row(&self.next_line, self.next_line.len(), theme);
 
         let line_display = Column::new()
             .spacing(5)
@@ -318,23 +334,25 @@ impl TypingTestState {
 
     /// Builds the results widget.
     fn results_widget(&mut self, theme: &Theme) -> Element<AppMessage> {
+        let text_palette = theme.text_palette();
+
         let wpm = Text::new(format!("{} WPM", self.current_stats.effective_wpm)).size(30);
 
         let correct_chars_label = Text::new("Correct Characters:");
         let correct_chars =
-            Text::new(self.current_stats.correct_chars.to_string()).color(theme.text.correct);
+            Text::new(self.current_stats.correct_chars.to_string()).color(text_palette.correct);
 
         let correct_words_label = Text::new("Correct Words:");
         let correct_words =
-            Text::new(self.current_stats.correct_words.to_string()).color(theme.text.correct);
+            Text::new(self.current_stats.correct_words.to_string()).color(text_palette.correct);
 
         let incorrect_chars_label = Text::new("Incorrect Characters:");
         let incorrect_chars =
-            Text::new(self.current_stats.incorrect_chars.to_string()).color(theme.text.incorrect);
+            Text::new(self.current_stats.incorrect_chars.to_string()).color(text_palette.incorrect);
 
         let incorrect_words_label = Text::new("Incorrect Words:");
         let incorrect_words =
-            Text::new(self.current_stats.incorrect_words.to_string()).color(theme.text.incorrect);
+            Text::new(self.current_stats.incorrect_words.to_string()).color(text_palette.incorrect);
 
         let accuracy_label = Text::new("Accuracy:");
         let accuracy = Text::new(format!("{:.2}%", self.current_stats.accuracy()));
