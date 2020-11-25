@@ -18,7 +18,7 @@ use crate::{
     AppMessage,
 };
 
-const MAX_CHARS: usize = 55;
+const MAX_CHARS: usize = 50;
 
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
@@ -258,7 +258,9 @@ impl TypingTestState {
                         text.into()
                     }
                 })
-                .fold(Row::new().spacing(5), |row, w| row.push(w))
+                .fold(Row::new().spacing(0), |row, w| {
+                    row.push(w).push(Text::new(" ").font(Theme::monospace()))
+                })
                 .into()
         }
 
