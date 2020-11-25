@@ -18,7 +18,7 @@ use crate::{
     AppMessage,
 };
 
-const MAX_CHARS: usize = 60;
+const MAX_CHARS: usize = 55;
 
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
@@ -238,7 +238,7 @@ impl TypingTestState {
                 WordStatus::Incorrect => text_palette.incorrect,
             };
 
-            Text::new(&word.word).color(color)
+            Text::new(&word.word).color(color).font(Theme::monospace())
         }
 
         fn words_to_displayed_row<'a>(
