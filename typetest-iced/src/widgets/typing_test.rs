@@ -67,6 +67,12 @@ pub struct TypingTestState {
     results_next_test_button: button::State,
 }
 
+/// Formats the provided number of seconds into the mm:ss format.
+#[inline]
+fn format_time_mm_ss(seconds: u64) -> String {
+    format!("{:0>2}:{:0>2}", seconds / 60, seconds % 60)
+}
+
 impl TypingTestState {
     pub fn new() -> TypingTestState {
         let mut word_gen = Box::new(RandomWordGenerator::default());
@@ -88,8 +94,8 @@ impl TypingTestState {
 
             current_input: String::new(),
             test_start: Instant::now(),
-            test_length_seconds: 60,
-            remaining_seconds: 60,
+            test_length_seconds: 5,
+            remaining_seconds: 5,
 
             show_wpm: true,
             show_timer: true,
@@ -294,11 +300,7 @@ impl TypingTestState {
         .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleWPMDisplay));
 
         let timer_text = if self.show_timer {
-            format!(
-                "{:0>2}:{:0>2}",
-                self.remaining_seconds / 60,
-                self.remaining_seconds % 60
-            )
+            format_time_mm_ss(self.remaining_seconds)
         } else {
             String::from(" ")
         };
@@ -343,44 +345,46 @@ impl TypingTestState {
 
         let wpm = Text::new(format!("{} WPM", self.current_stats.effective_wpm)).size(30);
 
-        let correct_chars_label = Text::new("Correct Characters:").color(text_palette.default);
+        // Labels
+        const LABEL_SPACING: u16 = 10;
+        let labels = Column::new()
+            .align_items(Align::End)
+            .spacing(LABEL_SPACING)
+            .push(Text::new("Raw WPM:"))
+            .push(Text::new("Correct Characters:"))
+            .push(Text::new("Incorrect Characters:"))
+            .push(Text::new("Correct Words:"))
+            .push(Text::new("Incorrect Words:"))
+            .push(Text::new("Accuracy:"))
+            .push(Text::new("Test Length:"));
+
+        let raw_wpm = Text::new(format!("{} WPM", self.current_stats.raw_wpm));
+
         let correct_chars =
             Text::new(self.current_stats.correct_chars.to_string()).color(text_palette.correct);
-
-        let correct_words_label = Text::new("Correct Words:").color(text_palette.default);
-        let correct_words =
-            Text::new(self.current_stats.correct_words.to_string()).color(text_palette.correct);
-
-        let incorrect_chars_label = Text::new("Incorrect Characters:").color(text_palette.default);
         let incorrect_chars =
             Text::new(self.current_stats.incorrect_chars.to_string()).color(text_palette.incorrect);
 
-        let incorrect_words_label = Text::new("Incorrect Words:").color(text_palette.default);
+        let correct_words =
+            Text::new(self.current_stats.correct_words.to_string()).color(text_palette.correct);
         let incorrect_words =
             Text::new(self.current_stats.incorrect_words.to_string()).color(text_palette.incorrect);
 
-        let accuracy_label = Text::new("Accuracy:").color(text_palette.default);
         let accuracy = Text::new(format!("{:.2}%", self.current_stats.accuracy()));
-
-        let labels = Column::new()
-            .align_items(Align::End)
-            .spacing(10)
-            .push(correct_chars_label)
-            .push(incorrect_chars_label)
-            .push(correct_words_label)
-            .push(incorrect_words_label)
-            .push(accuracy_label);
+        let test_length = Text::new(format_time_mm_ss(self.test_length_seconds));
 
         let values = Column::new()
             .align_items(Align::Start)
-            .spacing(10)
+            .spacing(LABEL_SPACING)
+            .push(raw_wpm)
             .push(correct_chars)
             .push(incorrect_chars)
             .push(correct_words)
             .push(incorrect_words)
-            .push(accuracy);
+            .push(accuracy)
+            .push(test_length);
 
-        let stats_breakdown = Row::new().spacing(10).push(labels).push(values);
+        let stats_grid = Row::new().spacing(10).push(labels).push(values);
 
         let retry_button = Button::new(
             &mut self.results_retry_button,
@@ -406,7 +410,7 @@ impl TypingTestState {
             .align_items(Align::Center)
             .spacing(20)
             .push(wpm)
-            .push(stats_breakdown)
+            .push(stats_grid)
             .push(controls)
             .into()
     }
