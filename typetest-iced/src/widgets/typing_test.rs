@@ -210,7 +210,7 @@ impl TypingTestState {
     }
 
     /// Creates the view for the current `TypingTestState`.
-    pub fn view(&mut self, theme: &Theme) -> Element<AppMessage> {
+    pub fn view(&mut self, theme: Theme) -> Element<AppMessage> {
         if self.status == TypingTestStatus::Finished {
             self.results_widget(theme)
         } else {
@@ -230,7 +230,7 @@ impl TypingTestState {
     }
 
     /// Builds the typing test widget.
-    fn typing_test_widget(&mut self, theme: &Theme) -> Element<AppMessage> {
+    fn typing_test_widget(&mut self, theme: Theme) -> Element<AppMessage> {
         fn word_to_iced_text(word: &DisplayedWord, text_palette: &TextPalette) -> Text {
             let color = match word.status {
                 WordStatus::NotTyped => text_palette.default,
@@ -241,11 +241,11 @@ impl TypingTestState {
             Text::new(&word.word).color(color).font(Theme::monospace())
         }
 
-        fn words_to_displayed_row<'a>(
-            words: &'a [DisplayedWord],
+        fn words_to_displayed_row(
+            words: &[DisplayedWord],
             current_pos: usize,
-            theme: &Theme,
-        ) -> Row<'a, AppMessage> {
+            theme: Theme,
+        ) -> Row<AppMessage> {
             let text_palette = theme.text_palette();
             words
                 .iter()
@@ -276,7 +276,8 @@ impl TypingTestState {
         let input_box = TextInput::new(&mut self.input_box, "", &self.current_input, |s| {
             AppMessage::TypingTest(TypingTestMessage::InputChanged(s))
         })
-        .padding(5);
+        .padding(5)
+        .style(theme);
 
         let wpm_text = if self.show_wpm {
             format!("{} WPM", self.current_stats.effective_wpm)
@@ -289,6 +290,7 @@ impl TypingTestState {
             Text::new(wpm_text).horizontal_alignment(HorizontalAlignment::Center),
         )
         .min_width(100)
+        .style(theme)
         .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleWPMDisplay));
 
         let timer_text = if self.show_timer {
@@ -306,6 +308,7 @@ impl TypingTestState {
             Text::new(timer_text).horizontal_alignment(HorizontalAlignment::Center),
         )
         .min_width(80)
+        .style(theme)
         .on_press(AppMessage::TypingTest(
             TypingTestMessage::ToggleTimerDisplay,
         ));
@@ -315,6 +318,7 @@ impl TypingTestState {
             Text::new("Redo").horizontal_alignment(HorizontalAlignment::Center),
         )
         .min_width(80)
+        .style(theme)
         .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
 
         let typing_area = Row::new()
@@ -334,28 +338,28 @@ impl TypingTestState {
     }
 
     /// Builds the results widget.
-    fn results_widget(&mut self, theme: &Theme) -> Element<AppMessage> {
+    fn results_widget(&mut self, theme: Theme) -> Element<AppMessage> {
         let text_palette = theme.text_palette();
 
         let wpm = Text::new(format!("{} WPM", self.current_stats.effective_wpm)).size(30);
 
-        let correct_chars_label = Text::new("Correct Characters:");
+        let correct_chars_label = Text::new("Correct Characters:").color(text_palette.default);
         let correct_chars =
             Text::new(self.current_stats.correct_chars.to_string()).color(text_palette.correct);
 
-        let correct_words_label = Text::new("Correct Words:");
+        let correct_words_label = Text::new("Correct Words:").color(text_palette.default);
         let correct_words =
             Text::new(self.current_stats.correct_words.to_string()).color(text_palette.correct);
 
-        let incorrect_chars_label = Text::new("Incorrect Characters:");
+        let incorrect_chars_label = Text::new("Incorrect Characters:").color(text_palette.default);
         let incorrect_chars =
             Text::new(self.current_stats.incorrect_chars.to_string()).color(text_palette.incorrect);
 
-        let incorrect_words_label = Text::new("Incorrect Words:");
+        let incorrect_words_label = Text::new("Incorrect Words:").color(text_palette.default);
         let incorrect_words =
             Text::new(self.current_stats.incorrect_words.to_string()).color(text_palette.incorrect);
 
-        let accuracy_label = Text::new("Accuracy:");
+        let accuracy_label = Text::new("Accuracy:").color(text_palette.default);
         let accuracy = Text::new(format!("{:.2}%", self.current_stats.accuracy()));
 
         let labels = Column::new()
@@ -382,12 +386,14 @@ impl TypingTestState {
             &mut self.results_retry_button,
             Text::new("Retry").horizontal_alignment(HorizontalAlignment::Center),
         )
+        .style(theme)
         .on_press(AppMessage::TypingTest(TypingTestMessage::Retry));
 
         let next_test_button = Button::new(
             &mut self.results_next_test_button,
             Text::new("Next Test").horizontal_alignment(HorizontalAlignment::Center),
         )
+        .style(theme)
         .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
 
         let controls = Row::new()

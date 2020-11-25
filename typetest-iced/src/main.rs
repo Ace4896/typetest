@@ -72,7 +72,7 @@ impl Application for TypeTestApp {
         let title = Text::new("TypeTest").size(40);
 
         let inner_view = match self.current_page {
-            Page::TypingTest => self.typing_test_state.view(&self.current_theme),
+            Page::TypingTest => self.typing_test_state.view(self.current_theme),
             page => Text::new(format!("Unknown Page {:?}", page)).into(),
         };
 
@@ -93,6 +93,7 @@ impl Application for TypeTestApp {
             .padding(20)
             .height(Length::Fill)
             .width(Length::Fill)
+            .style(self.current_theme)
             .into()
     }
 
