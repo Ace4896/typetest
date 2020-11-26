@@ -31,6 +31,25 @@ pub enum TypingTestMessage {
     NextTest,
 }
 
+impl From<TypingTestMessage> for AppMessage {
+    #[inline]
+    fn from(message: TypingTestMessage) -> AppMessage {
+        AppMessage::TypingTest(message)
+    }
+}
+
+impl TypingTestMessage {
+    #[inline]
+    fn timer_tick(i: Instant) -> AppMessage {
+        TypingTestMessage::TimerTick(i).into()
+    }
+
+    #[inline]
+    fn input_changed(s: String) -> AppMessage {
+        TypingTestMessage::InputChanged(s).into()
+    }
+}
+
 /// Represents the different statuses a typing test could be in.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TypingTestStatus {
@@ -265,8 +284,9 @@ impl TypingTestState {
 
         match self.status {
             TypingTestStatus::NotStarted | TypingTestStatus::Finished => Subscription::none(),
-            TypingTestStatus::Started => time::every(TICK_DURATION)
-                .map(|i| AppMessage::TypingTest(TypingTestMessage::TimerTick(i))),
+            TypingTestStatus::Started => {
+                time::every(TICK_DURATION).map(TypingTestMessage::timer_tick)
+            }
         }
     }
 
@@ -281,9 +301,12 @@ impl TypingTestState {
             .push(next_line)
             .max_width(600);
 
-        let input_box = TextInput::new(&mut self.input_box, "", &self.current_input, |s| {
-            AppMessage::TypingTest(TypingTestMessage::InputChanged(s))
-        })
+        let input_box = TextInput::new(
+            &mut self.input_box,
+            "",
+            &self.current_input,
+            TypingTestMessage::input_changed,
+        )
         .padding(5)
         .style(theme);
 
@@ -299,7 +322,7 @@ impl TypingTestState {
         )
         .min_width(100)
         .style(theme)
-        .on_press(AppMessage::TypingTest(TypingTestMessage::ToggleWPMDisplay));
+        .on_press(TypingTestMessage::ToggleWPMDisplay.into());
 
         let timer_text = if self.show_timer {
             format_time_mm_ss(self.remaining_seconds)
@@ -313,9 +336,7 @@ impl TypingTestState {
         )
         .min_width(80)
         .style(theme)
-        .on_press(AppMessage::TypingTest(
-            TypingTestMessage::ToggleTimerDisplay,
-        ));
+        .on_press(TypingTestMessage::ToggleTimerDisplay.into());
 
         let redo_button = Button::new(
             &mut self.redo_button,
@@ -323,7 +344,7 @@ impl TypingTestState {
         )
         .min_width(80)
         .style(theme)
-        .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
+        .on_press(TypingTestMessage::NextTest.into());
 
         let typing_area = Row::new()
             .spacing(10)
@@ -394,7 +415,7 @@ impl TypingTestState {
         )
         .min_width(100)
         .style(theme)
-        .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
+        .on_press(TypingTestMessage::NextTest.into());
 
         let retry_button = Button::new(
             &mut self.results_retry_button,
@@ -402,7 +423,7 @@ impl TypingTestState {
         )
         .min_width(100)
         .style(theme)
-        .on_press(AppMessage::TypingTest(TypingTestMessage::Retry));
+        .on_press(TypingTestMessage::Retry.into());
 
         let controls = Row::new()
             .align_items(Align::Center)
