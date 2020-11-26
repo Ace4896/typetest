@@ -14,15 +14,7 @@ pub struct RandomWordGenerator {
 
 impl Default for RandomWordGenerator {
     fn default() -> Self {
-        let word_pool = DEFAULT_WORDS.iter().map(|s| s.to_string()).collect();
-        let rng_seed = rand::thread_rng().gen::<u64>();
-        let rng = SmallRng::seed_from_u64(rng_seed);
-
-        RandomWordGenerator {
-            word_pool,
-            rng,
-            rng_seed,
-        }
+        RandomWordGenerator::new(DEFAULT_WORDS.iter().map(|s| s.to_string()).collect())
     }
 }
 
