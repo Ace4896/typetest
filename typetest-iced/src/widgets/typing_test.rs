@@ -73,6 +73,41 @@ fn format_time_mm_ss(seconds: u64) -> String {
     format!("{:0>2}:{:0>2}", seconds / 60, seconds % 60)
 }
 
+/// Converts a [DisplayedWord] to an [iced::Text].
+fn word_to_iced_text(word: &DisplayedWord, text_palette: &TextPalette) -> Text {
+    let color = match word.status {
+        WordStatus::NotTyped => text_palette.default,
+        WordStatus::Correct => text_palette.correct,
+        WordStatus::Incorrect => text_palette.incorrect,
+    };
+
+    Text::new(&word.word).color(color).font(Theme::monospace())
+}
+
+/// Converts a list of [DisplayedWord]s into an [iced::Row] of [iced::Text]s.
+fn words_to_displayed_row(
+    words: &[DisplayedWord],
+    current_pos: usize,
+    theme: Theme,
+) -> Row<AppMessage> {
+    let text_palette = theme.text_palette();
+    words
+        .iter()
+        .enumerate()
+        .map(|(pos, w)| -> Element<_> {
+            let text = word_to_iced_text(w, text_palette);
+            if current_pos == pos {
+                Container::new(text).style(theme.word_background()).into()
+            } else {
+                text.into()
+            }
+        })
+        .fold(Row::new().spacing(0), |row, w| {
+            row.push(w).push(Text::new(" ").font(Theme::monospace()))
+        })
+        .into()
+}
+
 impl TypingTestState {
     pub fn new() -> TypingTestState {
         let mut word_gen = Box::new(RandomWordGenerator::default());
@@ -237,39 +272,6 @@ impl TypingTestState {
 
     /// Builds the typing test widget.
     fn typing_test_widget(&mut self, theme: Theme) -> Element<AppMessage> {
-        fn word_to_iced_text(word: &DisplayedWord, text_palette: &TextPalette) -> Text {
-            let color = match word.status {
-                WordStatus::NotTyped => text_palette.default,
-                WordStatus::Correct => text_palette.correct,
-                WordStatus::Incorrect => text_palette.incorrect,
-            };
-
-            Text::new(&word.word).color(color).font(Theme::monospace())
-        }
-
-        fn words_to_displayed_row(
-            words: &[DisplayedWord],
-            current_pos: usize,
-            theme: Theme,
-        ) -> Row<AppMessage> {
-            let text_palette = theme.text_palette();
-            words
-                .iter()
-                .enumerate()
-                .map(|(pos, w)| -> Element<_> {
-                    let text = word_to_iced_text(w, text_palette);
-                    if current_pos == pos {
-                        Container::new(text).style(theme.word_background()).into()
-                    } else {
-                        text.into()
-                    }
-                })
-                .fold(Row::new().spacing(0), |row, w| {
-                    row.push(w).push(Text::new(" ").font(Theme::monospace()))
-                })
-                .into()
-        }
-
         let current_line = words_to_displayed_row(&self.current_line, self.current_pos, theme);
         let next_line = words_to_displayed_row(&self.next_line, self.next_line.len(), theme);
 
