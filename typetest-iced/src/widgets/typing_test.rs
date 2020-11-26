@@ -386,25 +386,27 @@ impl TypingTestState {
 
         let stats_grid = Row::new().spacing(10).push(labels).push(values);
 
-        let retry_button = Button::new(
-            &mut self.results_retry_button,
-            Text::new("Retry").horizontal_alignment(HorizontalAlignment::Center),
-        )
-        .style(theme)
-        .on_press(AppMessage::TypingTest(TypingTestMessage::Retry));
-
         let next_test_button = Button::new(
             &mut self.results_next_test_button,
             Text::new("Next Test").horizontal_alignment(HorizontalAlignment::Center),
         )
+        .min_width(100)
         .style(theme)
         .on_press(AppMessage::TypingTest(TypingTestMessage::NextTest));
+
+        let retry_button = Button::new(
+            &mut self.results_retry_button,
+            Text::new("Retry").horizontal_alignment(HorizontalAlignment::Center),
+        )
+        .min_width(100)
+        .style(theme)
+        .on_press(AppMessage::TypingTest(TypingTestMessage::Retry));
 
         let controls = Row::new()
             .align_items(Align::Center)
             .spacing(10)
-            .push(retry_button)
-            .push(next_test_button);
+            .push(next_test_button)
+            .push(retry_button);
 
         Column::new()
             .align_items(Align::Center)
