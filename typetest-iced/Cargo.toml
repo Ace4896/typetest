@@ -8,9 +8,4 @@ description = "An offline typing test, written using Iced."
 [dependencies]
 typetest-core = { path = "../typetest-core" }
 
-# TODO: Use next version of Iced once available
-[dependencies.iced]
-git = "https://github.com/hecrj/iced"
-rev = "8f081bad7756e16a4eb0ca4dcb1144fc47de5e9b"
-default-features = false
-features = ["async-std", "glow"]
+iced = { version = "0.2", default-features = false, features = ["async-std", "glow"] }
