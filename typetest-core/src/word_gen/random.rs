@@ -63,7 +63,7 @@ impl WordGenerator for RandomWordGenerator {
         let mut chars = 0;
         loop {
             let word = &self.word_pool[self.rng.gen_range(0, self.word_pool.len())];
-            chars += word.len();
+            chars += word.len() + !vec.is_empty() as usize;
 
             if chars > max_chars {
                 break;

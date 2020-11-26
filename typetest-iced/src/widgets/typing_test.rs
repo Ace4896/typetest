@@ -18,7 +18,7 @@ use crate::{
     AppMessage,
 };
 
-const MAX_CHARS: usize = 50;
+const MAX_CHARS: usize = 65;
 
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
