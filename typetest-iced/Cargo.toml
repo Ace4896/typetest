@@ -5,6 +5,10 @@ authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
 description = "An offline typing test, written using Iced."
 
+[[bin]]
+name = "typetest"
+path = "src/main.rs"
+
 [dependencies]
 typetest-core = { path = "../typetest-core" }
 
