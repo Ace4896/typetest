@@ -15,7 +15,7 @@ use typetest_core::{
 
 use crate::{
     theme::{TextPalette, Theme},
-    AppMessage,
+    AppMessage, GlobalMessage,
 };
 
 const MAX_CHARS: usize = 65;
@@ -23,7 +23,6 @@ const MAX_CHARS: usize = 65;
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
 pub enum TypingTestMessage {
-    TimeLengthChanged(u64),
     TimerTick(Instant),
     InputChanged(String),
     ToggleWPMDisplay,
@@ -41,11 +40,6 @@ impl From<TypingTestMessage> for AppMessage {
 }
 
 impl TypingTestMessage {
-    #[inline]
-    pub fn time_length_changed(s: u64) -> AppMessage {
-        TypingTestMessage::TimeLengthChanged(s).into()
-    }
-
     #[inline]
     fn timer_tick(i: Instant) -> AppMessage {
         TypingTestMessage::TimerTick(i).into()
@@ -179,13 +173,21 @@ impl TypingTestState {
         }
     }
 
-    /// Handles updates for the typing test screen.
-    pub fn update(&mut self, message: TypingTestMessage) -> Command<AppMessage> {
+    /// Handles any global updates which may be related to the typing test screen.
+    pub fn global_update(&mut self, message: GlobalMessage) -> Command<AppMessage> {
         match message {
-            TypingTestMessage::TimeLengthChanged(s) => {
+            GlobalMessage::TimeLengthChanged(s) => {
                 self.test_length_seconds = s;
                 self.reset_test_state(false);
             }
+        }
+
+        Command::none()
+    }
+
+    /// Handles updates for the typing test screen.
+    pub fn update(&mut self, message: TypingTestMessage) -> Command<AppMessage> {
+        match message {
             TypingTestMessage::TimerTick(i) => {
                 if self.status != TypingTestStatus::Started {
                     return Command::none();

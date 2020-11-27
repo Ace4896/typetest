@@ -23,9 +23,29 @@ pub enum Page {
 /// Top-level enum for the messages that can be sent in this application.
 #[derive(Clone, Debug)]
 pub enum AppMessage {
+    Global(GlobalMessage),
     Navigate(Page),
     TypingTest(TypingTestMessage),
     Settings(SettingsMessage),
+}
+
+#[derive(Clone, Debug)]
+pub enum GlobalMessage {
+    TimeLengthChanged(u64),
+}
+
+impl From<GlobalMessage> for AppMessage {
+    #[inline]
+    fn from(g: GlobalMessage) -> AppMessage {
+        AppMessage::Global(g)
+    }
+}
+
+impl GlobalMessage {
+    #[inline]
+    pub fn time_length_changed(s: u64) -> AppMessage {
+        GlobalMessage::TimeLengthChanged(s).into()
+    }
 }
 
 /// Represents the main state of the application.
@@ -70,6 +90,11 @@ impl Application for TypeTestApp {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
+            AppMessage::Global(g) => {
+                let typing_test_cmd = self.typing_test_state.global_update(g.clone());
+                let settings_cmd = self.settings_state.global_update(g.clone());
+                Command::batch(vec![typing_test_cmd, settings_cmd])
+            }
             AppMessage::Navigate(page) => {
                 self.current_page = page;
                 Command::none()

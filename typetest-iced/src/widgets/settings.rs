@@ -5,15 +5,12 @@ use iced::{
 
 use crate::{
     theme::{self, Theme},
-    AppMessage, Page,
+    AppMessage, GlobalMessage, Page,
 };
-
-use super::typing_test::TypingTestMessage;
 
 #[derive(Clone, Debug)]
 pub enum SettingsMessage {
     ThemeChanged(Theme),
-    TimeLengthChanged(u64),
 }
 
 impl From<SettingsMessage> for AppMessage {
@@ -27,11 +24,6 @@ impl SettingsMessage {
     #[inline]
     fn theme_changed(theme: Theme) -> AppMessage {
         SettingsMessage::ThemeChanged(theme).into()
-    }
-
-    #[inline]
-    fn time_length_changed(seconds: u64) -> AppMessage {
-        SettingsMessage::TimeLengthChanged(seconds).into()
     }
 }
 
@@ -103,7 +95,7 @@ impl RandomGeneratorState {
             &mut self.time_length_pick_list,
             &TIME_OPTIONS[..],
             Some(self.time_length_seconds),
-            SettingsMessage::time_length_changed,
+            GlobalMessage::time_length_changed,
         )
         .style(theme);
 
@@ -145,13 +137,19 @@ impl SettingsState {
         self.theme_state.current_theme
     }
 
+    pub fn global_update(&mut self, message: GlobalMessage) -> Command<AppMessage> {
+        match message {
+            GlobalMessage::TimeLengthChanged(s) => {
+                self.random_generator_state.time_length_seconds = s
+            }
+        }
+
+        Command::none()
+    }
+
     pub fn update(&mut self, message: SettingsMessage) -> Command<AppMessage> {
         match message {
             SettingsMessage::ThemeChanged(t) => self.theme_state.current_theme = t,
-            SettingsMessage::TimeLengthChanged(s) => {
-                self.random_generator_state.time_length_seconds = s;
-                return Command::perform(async move { s }, TypingTestMessage::time_length_changed);
-            }
         }
 
         Command::none()
