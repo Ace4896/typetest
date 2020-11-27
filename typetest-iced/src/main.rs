@@ -10,7 +10,7 @@ use iced::{
 
 use widgets::{
     settings::{SettingsMessage, SettingsState},
-    typing_test::{TypingTestMessage, TypingTestState},
+    typing_test::{TypingTestMessage, TypingTestState, TypingTestStatus},
 };
 
 /// Represents the different pages in the application.
@@ -85,13 +85,20 @@ impl Application for TypeTestApp {
 
         let inner_view: Element<_> = match self.current_page {
             Page::TypingTest => {
-                let settings_button = Button::new(
-                    &mut self.settings_button,
-                    Text::new("Settings").horizontal_alignment(HorizontalAlignment::Center),
-                )
-                .min_width(100)
-                .style(current_theme)
-                .on_press(AppMessage::Navigate(Page::Settings));
+                let settings_button = {
+                    let tmp = Button::new(
+                        &mut self.settings_button,
+                        Text::new("Settings").horizontal_alignment(HorizontalAlignment::Center),
+                    )
+                    .min_width(100)
+                    .style(current_theme);
+
+                    if self.typing_test_state.status != TypingTestStatus::Started {
+                        tmp.on_press(AppMessage::Navigate(Page::Settings))
+                    } else {
+                        tmp
+                    }
+                };
 
                 Column::new()
                     .align_items(Align::Center)
