@@ -1,4 +1,4 @@
-use iced::{button, container, text_input, Color, Font};
+use iced::{button, container, scrollable, text_input, Color, Font};
 
 pub mod default_dark;
 pub mod default_light;
@@ -54,6 +54,15 @@ impl From<Theme> for Box<dyn container::StyleSheet> {
         match t {
             Theme::DefaultLight => Default::default(),
             Theme::DefaultDark => default_dark::Container.into(),
+        }
+    }
+}
+
+impl From<Theme> for Box<dyn scrollable::StyleSheet> {
+    fn from(t: Theme) -> Self {
+        match t {
+            Theme::DefaultLight => Default::default(),
+            Theme::DefaultDark => default_dark::Scrollable.into(),
         }
     }
 }

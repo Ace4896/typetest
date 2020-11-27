@@ -1,16 +1,17 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod theme;
-
 mod widgets;
-use theme::Theme;
 
 use iced::{
     button, executor, Align, Application, Button, Column, Command, Container, Element,
     HorizontalAlignment, Length, Settings, Subscription, Text,
 };
 
-use widgets::typing_test::{TypingTestMessage, TypingTestState};
+use widgets::{
+    settings::{SettingsMessage, SettingsState},
+    typing_test::{TypingTestMessage, TypingTestState},
+};
 
 /// Represents the different pages in the application.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -24,26 +25,29 @@ pub enum Page {
 pub enum AppMessage {
     Navigate(Page),
     TypingTest(TypingTestMessage),
+    Settings(SettingsMessage),
 }
 
 /// Represents the main state of the application.
 pub struct TypeTestApp {
     current_page: Page,
-    current_theme: Theme,
 
     // Widget States
     typing_test_state: TypingTestState,
     settings_button: button::State,
+
+    settings_state: SettingsState,
 }
 
 impl TypeTestApp {
     fn new() -> TypeTestApp {
         TypeTestApp {
             current_page: Page::TypingTest,
-            current_theme: Theme::DefaultDark,
 
             typing_test_state: TypingTestState::new(),
             settings_button: button::State::new(),
+
+            settings_state: SettingsState::new(),
         }
     }
 }
@@ -71,10 +75,12 @@ impl Application for TypeTestApp {
                 Command::none()
             }
             AppMessage::TypingTest(m) => self.typing_test_state.update(m),
+            AppMessage::Settings(s) => self.settings_state.update(s),
         }
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
+        let current_theme = self.settings_state.current_theme;
         let title = Text::new("TypeTest").size(40);
 
         let inner_view: Element<_> = match self.current_page {
@@ -84,17 +90,17 @@ impl Application for TypeTestApp {
                     Text::new("Settings").horizontal_alignment(HorizontalAlignment::Center),
                 )
                 .min_width(100)
-                .style(self.current_theme)
+                .style(current_theme)
                 .on_press(AppMessage::Navigate(Page::Settings));
 
                 Column::new()
                     .align_items(Align::Center)
                     .spacing(20)
-                    .push(self.typing_test_state.view(self.current_theme))
+                    .push(self.typing_test_state.view(current_theme))
                     .push(settings_button)
                     .into()
             }
-            page => Text::new(format!("Unknown Page {:?}", page)).into(),
+            Page::Settings => self.settings_state.view(),
         };
 
         let inner_container = Container::new(inner_view)
@@ -114,7 +120,7 @@ impl Application for TypeTestApp {
             .padding(20)
             .height(Length::Fill)
             .width(Length::Fill)
-            .style(self.current_theme)
+            .style(current_theme)
             .into()
     }
 
