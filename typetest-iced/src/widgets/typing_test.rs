@@ -23,6 +23,7 @@ const MAX_CHARS: usize = 65;
 /// Represents the possible messages that could be sent during a typing test.
 #[derive(Clone, Debug)]
 pub enum TypingTestMessage {
+    TimeLengthChanged(u64),
     TimerTick(Instant),
     InputChanged(String),
     ToggleWPMDisplay,
@@ -40,6 +41,11 @@ impl From<TypingTestMessage> for AppMessage {
 }
 
 impl TypingTestMessage {
+    #[inline]
+    pub fn time_length_changed(s: u64) -> AppMessage {
+        TypingTestMessage::TimeLengthChanged(s).into()
+    }
+
     #[inline]
     fn timer_tick(i: Instant) -> AppMessage {
         TypingTestMessage::TimerTick(i).into()
@@ -176,6 +182,10 @@ impl TypingTestState {
     /// Handles updates for the typing test screen.
     pub fn update(&mut self, message: TypingTestMessage) -> Command<AppMessage> {
         match message {
+            TypingTestMessage::TimeLengthChanged(s) => {
+                self.test_length_seconds = s;
+                return Command::perform(async {}, |_| TypingTestMessage::Retry.into());
+            }
             TypingTestMessage::TimerTick(i) => {
                 if self.status != TypingTestStatus::Started {
                     return Command::none();

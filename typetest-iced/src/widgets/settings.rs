@@ -8,9 +8,12 @@ use crate::{
     AppMessage, Page,
 };
 
+use super::typing_test::TypingTestMessage;
+
 #[derive(Clone, Debug)]
 pub enum SettingsMessage {
     ThemeChanged(Theme),
+    TimeLengthChanged(u64),
 }
 
 impl From<SettingsMessage> for AppMessage {
@@ -24,6 +27,11 @@ impl SettingsMessage {
     #[inline]
     fn theme_changed(theme: Theme) -> AppMessage {
         SettingsMessage::ThemeChanged(theme).into()
+    }
+
+    #[inline]
+    fn time_length_changed(seconds: u64) -> AppMessage {
+        SettingsMessage::TimeLengthChanged(seconds).into()
     }
 }
 
@@ -62,15 +70,42 @@ impl ThemeState {
     }
 }
 
-pub struct RandomGeneratorState {}
+pub struct RandomGeneratorState {
+    pub time_length_seconds: u64,
+
+    // Widget State
+    time_length_pick_list: pick_list::State<u64>,
+}
 
 impl RandomGeneratorState {
     pub fn new() -> RandomGeneratorState {
-        RandomGeneratorState {}
+        RandomGeneratorState {
+            time_length_seconds: 60,
+
+            time_length_pick_list: pick_list::State::default(),
+        }
     }
 
-    fn random_generator_settings(&mut self) -> Element<AppMessage> {
-        Text::new("zzz").into()
+    // TODO: Other options?
+    fn random_generator_settings(&mut self, theme: Theme) -> Element<AppMessage> {
+        const TIME_OPTIONS: [u64; 5] = [10, 30, 60, 120, 300];
+
+        let time_length_label = Text::new("Test Length (Time):");
+        let time_length_pick_list = PickList::new(
+            &mut self.time_length_pick_list,
+            &TIME_OPTIONS[..],
+            Some(self.time_length_seconds),
+            SettingsMessage::time_length_changed,
+        )
+        .style(theme);
+
+        let time_length = Row::new()
+            .align_items(Align::Center)
+            .spacing(10)
+            .push(time_length_label)
+            .push(time_length_pick_list);
+
+        time_length.into()
     }
 }
 
@@ -101,6 +136,10 @@ impl SettingsState {
     pub fn update(&mut self, message: SettingsMessage) -> Command<AppMessage> {
         match message {
             SettingsMessage::ThemeChanged(t) => self.theme_state.current_theme = t,
+            SettingsMessage::TimeLengthChanged(s) => {
+                self.random_generator_state.time_length_seconds = s;
+                return Command::perform(async move { s }, TypingTestMessage::time_length_changed);
+            }
         }
 
         Command::none()
@@ -124,7 +163,10 @@ impl SettingsState {
             .width(Length::Fill)
             .style(current_theme)
             .push(self.theme_state.theme_selector())
-            .push(self.random_generator_state.random_generator_settings());
+            .push(
+                self.random_generator_state
+                    .random_generator_settings(current_theme),
+            );
 
         Column::new()
             .align_items(Align::Center)
