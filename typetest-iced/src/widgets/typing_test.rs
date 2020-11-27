@@ -4,8 +4,8 @@ use std::{
 };
 
 use iced::{
-    button, text_input, time, Align, Button, Column, Command, Container, Element,
-    HorizontalAlignment, Row, Subscription, Text, TextInput,
+    button, scrollable, text_input, time, Align, Button, Column, Command, Container, Element,
+    HorizontalAlignment, Row, Scrollable, Subscription, Text, TextInput,
 };
 
 use typetest_core::{
@@ -27,6 +27,7 @@ pub enum TypingTestMessage {
     InputChanged(String),
     ToggleWPMDisplay,
     ToggleTimerDisplay,
+    ToggleMissedWords,
     Retry,
     NextTest,
 }
@@ -76,6 +77,8 @@ pub struct TypingTestState {
     show_wpm: bool,
     show_timer: bool,
 
+    show_missed_words: bool,
+
     // Widget States
     input_box: text_input::State,
     wpm_button: button::State,
@@ -84,6 +87,8 @@ pub struct TypingTestState {
 
     results_retry_button: button::State,
     results_next_test_button: button::State,
+    results_toggle_missed_button: button::State,
+    results_missed_scrollable: scrollable::State,
 }
 
 /// Formats the provided number of seconds into the mm:ss format.
@@ -148,11 +153,13 @@ impl TypingTestState {
 
             current_input: String::new(),
             test_start: Instant::now(),
-            test_length_seconds: 60,
-            remaining_seconds: 60,
+            test_length_seconds: 2,
+            remaining_seconds: 2,
 
             show_wpm: true,
             show_timer: true,
+
+            show_missed_words: false,
 
             input_box: text_input::State::new(),
             wpm_button: button::State::new(),
@@ -161,6 +168,8 @@ impl TypingTestState {
 
             results_retry_button: button::State::new(),
             results_next_test_button: button::State::new(),
+            results_toggle_missed_button: button::State::new(),
+            results_missed_scrollable: scrollable::State::new(),
         }
     }
 
@@ -242,6 +251,9 @@ impl TypingTestState {
             }
             TypingTestMessage::ToggleWPMDisplay => self.show_wpm = !self.show_wpm,
             TypingTestMessage::ToggleTimerDisplay => self.show_timer = !self.show_timer,
+            TypingTestMessage::ToggleMissedWords => {
+                self.show_missed_words = !self.show_missed_words
+            }
             TypingTestMessage::Retry => {
                 self.status = TypingTestStatus::NotStarted;
                 self.word_gen.prepare_for_retry();
@@ -249,6 +261,7 @@ impl TypingTestState {
                 self.current_pos = 0;
                 self.current_input.clear();
                 self.remaining_seconds = self.test_length_seconds;
+                self.show_missed_words = false;
 
                 self.word_gen.fill_words(&mut self.current_line, MAX_CHARS);
                 self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
@@ -260,6 +273,7 @@ impl TypingTestState {
                 self.current_pos = 0;
                 self.current_input.clear();
                 self.remaining_seconds = self.test_length_seconds;
+                self.show_missed_words = false;
 
                 self.word_gen.fill_words(&mut self.current_line, MAX_CHARS);
                 self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
@@ -425,18 +439,64 @@ impl TypingTestState {
         .style(theme)
         .on_press(TypingTestMessage::Retry.into());
 
+        let toggle_missed_button = {
+            let tmp = Button::new(
+                &mut self.results_toggle_missed_button,
+                Text::new("Toggle Missed Words").horizontal_alignment(HorizontalAlignment::Center),
+            )
+            .style(theme);
+
+            if self.current_stats.get_missed_words().is_empty() {
+                tmp
+            } else {
+                tmp.on_press(TypingTestMessage::ToggleMissedWords.into())
+            }
+        };
+
         let controls = Row::new()
             .align_items(Align::Center)
             .spacing(10)
             .push(next_test_button)
-            .push(retry_button);
+            .push(retry_button)
+            .push(toggle_missed_button);
 
-        Column::new()
+        let mut results = Column::new()
             .align_items(Align::Center)
             .spacing(20)
             .push(wpm)
-            .push(stats_grid)
-            .push(controls)
-            .into()
+            .push(stats_grid);
+
+        if self.show_missed_words {
+            let missed_words_map = self.current_stats.get_missed_words();
+            if !missed_words_map.is_empty() {
+                // TODO: Grid widget?
+                let (missed_words, freq) = missed_words_map.iter().fold(
+                    (
+                        Column::new().align_items(Align::End),
+                        Column::new().align_items(Align::Start),
+                    ),
+                    |(words_col, freq_col), (word, freq)| {
+                        (
+                            words_col.push(Text::new(word)),
+                            freq_col.push(Text::new(format!("{}", freq))),
+                        )
+                    },
+                );
+
+                let missed_words_grid = Row::new().spacing(10).push(missed_words).push(freq);
+
+                results = results.push(
+                    Scrollable::new(&mut self.results_missed_scrollable)
+                        .align_items(Align::Center)
+                        .padding(10)
+                        .spacing(10)
+                        .max_height(200)
+                        .push(Text::new("Missed Words").size(28))
+                        .push(missed_words_grid),
+                );
+            }
+        }
+
+        results.push(controls).into()
     }
 }
