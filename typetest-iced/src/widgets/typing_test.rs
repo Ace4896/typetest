@@ -294,6 +294,7 @@ impl TypingTestState {
         }
     }
 
+    /// Resets the state of the typing test.
     fn reset_test_state(&mut self, new_test: bool) {
         if new_test {
             self.word_gen.prepare_for_next_test();

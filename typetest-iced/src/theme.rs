@@ -10,14 +10,17 @@ const NOTO_SANS_MONO: Font = Font::External {
     bytes: include_bytes!("../fonts/NotoSansMono/NotoSansMono-Regular.ttf"),
 };
 
+/// An array of all the themes in this application.
 pub const ALL_THEMES: [Theme; 2] = [Theme::DefaultDark, Theme::DefaultLight];
 
+/// Represents various colors used for text in this application.
 pub struct TextPalette {
     pub default: Color,
     pub correct: Color,
     pub incorrect: Color,
 }
 
+/// Represents a theme in this application.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Theme {
     DefaultDark,

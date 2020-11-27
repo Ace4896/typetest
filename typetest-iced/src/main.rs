@@ -29,6 +29,7 @@ pub enum AppMessage {
     Settings(SettingsMessage),
 }
 
+/// Represents a message that is to be sent to all top-level widgets.
 #[derive(Clone, Debug)]
 pub enum GlobalMessage {
     TimeLengthChanged(u64),

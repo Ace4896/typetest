@@ -8,6 +8,7 @@ use crate::{
     AppMessage, GlobalMessage, Page,
 };
 
+/// Represents a message specific to the settings widget.
 #[derive(Clone, Debug)]
 pub enum SettingsMessage {
     ThemeChanged(Theme),
@@ -27,6 +28,7 @@ impl SettingsMessage {
     }
 }
 
+/// Represents the state for any global settings.
 pub struct GlobalSettingsState {
     pub current_theme: Theme,
 
@@ -42,6 +44,8 @@ impl GlobalSettingsState {
         }
     }
 
+    // TODO: Different name?
+    /// Builds the theme selector widget.
     fn theme_selector(&mut self) -> Element<AppMessage> {
         let title = Text::new("Global Settings").size(28);
 
@@ -85,6 +89,7 @@ impl RandomGeneratorState {
     }
 
     // TODO: Other options?
+    /// Builds the widget for random generator settings.
     fn random_generator_settings(&mut self, theme: Theme) -> Element<AppMessage> {
         const TIME_OPTIONS: [u64; 5] = [10, 30, 60, 120, 300];
 
@@ -113,6 +118,7 @@ impl RandomGeneratorState {
     }
 }
 
+/// Top-level setting state.
 pub struct SettingsState {
     // Widget States
     theme_state: GlobalSettingsState,
@@ -133,10 +139,12 @@ impl SettingsState {
         }
     }
 
+    /// Gets the current theme.
     pub fn current_theme(&self) -> Theme {
         self.theme_state.current_theme
     }
 
+    /// Handles any global updates which may be related to this widget.
     pub fn global_update(&mut self, message: GlobalMessage) -> Command<AppMessage> {
         match message {
             GlobalMessage::TimeLengthChanged(s) => {
@@ -147,6 +155,7 @@ impl SettingsState {
         Command::none()
     }
 
+    /// Handles any updates specific to this widget.
     pub fn update(&mut self, message: SettingsMessage) -> Command<AppMessage> {
         match message {
             SettingsMessage::ThemeChanged(t) => self.theme_state.current_theme = t,
@@ -155,6 +164,7 @@ impl SettingsState {
         Command::none()
     }
 
+    /// Builds the top-level view for all settings.
     pub fn view(&mut self) -> Element<AppMessage> {
         let current_theme = self.current_theme();
 
