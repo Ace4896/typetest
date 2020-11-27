@@ -72,6 +72,7 @@ pub struct TypingTestState {
     current_input: String,
     test_start: Instant,
     test_length_seconds: u64,
+    last_test_length_seconds: u64,
     remaining_seconds: u64,
 
     show_wpm: bool,
@@ -154,6 +155,7 @@ impl TypingTestState {
             current_input: String::new(),
             test_start: Instant::now(),
             test_length_seconds: test_length,
+            last_test_length_seconds: test_length,
             remaining_seconds: test_length,
 
             show_wpm: true,
@@ -178,7 +180,11 @@ impl TypingTestState {
         match message {
             GlobalMessage::TimeLengthChanged(s) => {
                 self.test_length_seconds = s;
-                self.reset_test_state(false);
+
+                // Reset any tests if we're not on the results screen
+                if self.status != TypingTestStatus::Finished {
+                    self.reset_test_state(false);
+                }
             }
         }
 
@@ -207,6 +213,7 @@ impl TypingTestState {
 
                 if self.remaining_seconds == 0 {
                     self.status = TypingTestStatus::Finished;
+                    self.last_test_length_seconds = self.test_length_seconds;
                 }
             }
             TypingTestMessage::InputChanged(mut s) => {
@@ -417,7 +424,7 @@ impl TypingTestState {
             Text::new(self.current_stats.incorrect_words.to_string()).color(text_palette.incorrect);
 
         let accuracy = Text::new(format!("{:.2}%", self.current_stats.accuracy()));
-        let test_length = Text::new(format_time_mm_ss(self.test_length_seconds));
+        let test_length = Text::new(format_time_mm_ss(self.last_test_length_seconds));
 
         let values = Column::new()
             .align_items(Align::Start)
