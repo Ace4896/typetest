@@ -144,6 +144,11 @@ impl SettingsState {
         self.theme_state.current_theme
     }
 
+    /// Gets the length of a random generator test in seconds.
+    pub fn random_time_length(&self) -> u64 {
+        self.random_generator_state.time_length_seconds
+    }
+
     /// Handles any global updates which may be related to this widget.
     pub fn global_update(&mut self, message: GlobalMessage) -> Command<AppMessage> {
         match message {

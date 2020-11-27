@@ -62,13 +62,16 @@ pub struct TypeTestApp {
 
 impl TypeTestApp {
     fn new() -> TypeTestApp {
+        let settings_state = SettingsState::new();
+        let random_time_length = settings_state.random_time_length();
+
         TypeTestApp {
+            settings_state,
+
             current_page: Page::TypingTest,
 
-            typing_test_state: TypingTestState::new(),
+            typing_test_state: TypingTestState::new(random_time_length),
             settings_button: button::State::new(),
-
-            settings_state: SettingsState::new(),
         }
     }
 }

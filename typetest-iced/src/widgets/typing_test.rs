@@ -133,7 +133,7 @@ fn words_to_displayed_row(
 }
 
 impl TypingTestState {
-    pub fn new() -> TypingTestState {
+    pub fn new(test_length: u64) -> TypingTestState {
         let mut word_gen = Box::new(RandomWordGenerator::default());
         let mut current_line = Vec::new();
         let mut next_line = Vec::new();
@@ -153,8 +153,8 @@ impl TypingTestState {
 
             current_input: String::new(),
             test_start: Instant::now(),
-            test_length_seconds: 2,
-            remaining_seconds: 2,
+            test_length_seconds: test_length,
+            remaining_seconds: test_length,
 
             show_wpm: true,
             show_timer: true,
