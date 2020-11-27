@@ -80,7 +80,7 @@ impl Application for TypeTestApp {
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
-        let current_theme = self.settings_state.current_theme;
+        let current_theme = self.settings_state.current_theme();
         let title = Text::new("TypeTest").size(40);
 
         let inner_view: Element<_> = match self.current_page {

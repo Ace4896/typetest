@@ -1,4 +1,6 @@
-use iced::{button, container, scrollable, text_input, Color, Font};
+use std::fmt::Display;
+
+use iced::{button, container, pick_list, radio, scrollable, text_input, Color, Font};
 
 pub mod default_dark;
 pub mod default_light;
@@ -8,16 +10,33 @@ const NOTO_SANS_MONO: Font = Font::External {
     bytes: include_bytes!("../fonts/NotoSansMono/NotoSansMono-Regular.ttf"),
 };
 
-#[derive(Copy, Clone, Debug)]
-pub enum Theme {
-    DefaultLight,
-    DefaultDark,
-}
+pub const ALL_THEMES: [Theme; 2] = [Theme::DefaultDark, Theme::DefaultLight];
 
 pub struct TextPalette {
     pub default: Color,
     pub correct: Color,
     pub incorrect: Color,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum Theme {
+    DefaultDark,
+    DefaultLight,
+}
+
+impl Display for Theme {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Theme::DefaultLight => f.write_str("Default (Light)"),
+            Theme::DefaultDark => f.write_str("Default (Dark)"),
+        }
+    }
+}
+
+impl From<Theme> for String {
+    fn from(theme: Theme) -> String {
+        theme.to_string()
+    }
 }
 
 impl Theme {
@@ -54,6 +73,24 @@ impl From<Theme> for Box<dyn container::StyleSheet> {
         match t {
             Theme::DefaultLight => Default::default(),
             Theme::DefaultDark => default_dark::Container.into(),
+        }
+    }
+}
+
+impl From<Theme> for Box<dyn pick_list::StyleSheet> {
+    fn from(t: Theme) -> Self {
+        match t {
+            Theme::DefaultLight => Default::default(),
+            Theme::DefaultDark => default_dark::PickList.into(),
+        }
+    }
+}
+
+impl From<Theme> for Box<dyn radio::StyleSheet> {
+    fn from(t: Theme) -> Self {
+        match t {
+            Theme::DefaultLight => Default::default(),
+            Theme::DefaultDark => default_dark::Radio.into(),
         }
     }
 }
