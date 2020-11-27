@@ -35,15 +35,15 @@ impl SettingsMessage {
     }
 }
 
-pub struct ThemeState {
+pub struct GlobalSettingsState {
     pub current_theme: Theme,
 
     theme_pick_list: pick_list::State<Theme>,
 }
 
-impl ThemeState {
-    pub fn new() -> ThemeState {
-        ThemeState {
+impl GlobalSettingsState {
+    pub fn new() -> GlobalSettingsState {
+        GlobalSettingsState {
             current_theme: Theme::DefaultDark,
 
             theme_pick_list: pick_list::State::default(),
@@ -51,9 +51,10 @@ impl ThemeState {
     }
 
     fn theme_selector(&mut self) -> Element<AppMessage> {
-        let label = Text::new("Theme:");
+        let title = Text::new("Global Settings").size(28);
 
-        let selector = PickList::new(
+        let theme_label = Text::new("Theme:");
+        let theme_pick_list = PickList::new(
             &mut self.theme_pick_list,
             &theme::ALL_THEMES[..],
             Some(self.current_theme),
@@ -61,11 +62,16 @@ impl ThemeState {
         )
         .style(self.current_theme);
 
-        Row::new()
+        let theme_selector = Row::new()
             .align_items(Align::Center)
             .spacing(10)
-            .push(label)
-            .push(selector)
+            .push(theme_label)
+            .push(theme_pick_list);
+
+        Column::new()
+            .spacing(10)
+            .push(title)
+            .push(theme_selector)
             .into()
     }
 }
@@ -90,6 +96,8 @@ impl RandomGeneratorState {
     fn random_generator_settings(&mut self, theme: Theme) -> Element<AppMessage> {
         const TIME_OPTIONS: [u64; 5] = [10, 30, 60, 120, 300];
 
+        let title = Text::new("Random Generator Settings").size(28);
+
         let time_length_label = Text::new("Test Length (Time):");
         let time_length_pick_list = PickList::new(
             &mut self.time_length_pick_list,
@@ -105,13 +113,17 @@ impl RandomGeneratorState {
             .push(time_length_label)
             .push(time_length_pick_list);
 
-        time_length.into()
+        Column::new()
+            .spacing(10)
+            .push(title)
+            .push(time_length)
+            .into()
     }
 }
 
 pub struct SettingsState {
     // Widget States
-    theme_state: ThemeState,
+    theme_state: GlobalSettingsState,
     random_generator_state: RandomGeneratorState,
 
     scroll_state: scrollable::State,
@@ -121,7 +133,7 @@ pub struct SettingsState {
 impl SettingsState {
     pub fn new() -> SettingsState {
         SettingsState {
-            theme_state: ThemeState::new(),
+            theme_state: GlobalSettingsState::new(),
             random_generator_state: RandomGeneratorState::new(),
 
             scroll_state: scrollable::State::new(),
@@ -147,7 +159,6 @@ impl SettingsState {
 
     pub fn view(&mut self) -> Element<AppMessage> {
         let current_theme = self.current_theme();
-        let title = Text::new("Settings").size(32);
 
         let back_button = Button::new(
             &mut self.back_button,
@@ -159,6 +170,7 @@ impl SettingsState {
 
         let main_content = Scrollable::new(&mut self.scroll_state)
             .align_items(Align::Start)
+            .spacing(20)
             .height(Length::Fill)
             .width(Length::Fill)
             .style(current_theme)
@@ -173,7 +185,6 @@ impl SettingsState {
             .spacing(10)
             .max_height(500)
             .max_width(400)
-            .push(title)
             .push(main_content)
             .push(back_button)
             .into()
