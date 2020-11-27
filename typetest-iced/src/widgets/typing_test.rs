@@ -184,7 +184,7 @@ impl TypingTestState {
         match message {
             TypingTestMessage::TimeLengthChanged(s) => {
                 self.test_length_seconds = s;
-                return Command::perform(async {}, |_| TypingTestMessage::Retry.into());
+                self.reset_test_state(false);
             }
             TypingTestMessage::TimerTick(i) => {
                 if self.status != TypingTestStatus::Started {
@@ -264,30 +264,8 @@ impl TypingTestState {
             TypingTestMessage::ToggleMissedWords => {
                 self.show_missed_words = !self.show_missed_words
             }
-            TypingTestMessage::Retry => {
-                self.status = TypingTestStatus::NotStarted;
-                self.word_gen.prepare_for_retry();
-                self.current_stats.reset();
-                self.current_pos = 0;
-                self.current_input.clear();
-                self.remaining_seconds = self.test_length_seconds;
-                self.show_missed_words = false;
-
-                self.word_gen.fill_words(&mut self.current_line, MAX_CHARS);
-                self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
-            }
-            TypingTestMessage::NextTest => {
-                self.status = TypingTestStatus::NotStarted;
-                self.word_gen.prepare_for_next_test();
-                self.current_stats.reset();
-                self.current_pos = 0;
-                self.current_input.clear();
-                self.remaining_seconds = self.test_length_seconds;
-                self.show_missed_words = false;
-
-                self.word_gen.fill_words(&mut self.current_line, MAX_CHARS);
-                self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
-            }
+            TypingTestMessage::Retry => self.reset_test_state(false),
+            TypingTestMessage::NextTest => self.reset_test_state(true),
         }
 
         Command::none()
@@ -312,6 +290,24 @@ impl TypingTestState {
                 time::every(TICK_DURATION).map(TypingTestMessage::timer_tick)
             }
         }
+    }
+
+    fn reset_test_state(&mut self, new_test: bool) {
+        if new_test {
+            self.word_gen.prepare_for_next_test();
+        } else {
+            self.word_gen.prepare_for_retry();
+        }
+
+        self.status = TypingTestStatus::NotStarted;
+        self.current_stats.reset();
+        self.current_pos = 0;
+        self.current_input.clear();
+        self.remaining_seconds = self.test_length_seconds;
+        self.show_missed_words = false;
+
+        self.word_gen.fill_words(&mut self.current_line, MAX_CHARS);
+        self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
     }
 
     /// Builds the typing test widget.
