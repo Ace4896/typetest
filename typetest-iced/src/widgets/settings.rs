@@ -44,9 +44,8 @@ impl GlobalSettingsState {
         }
     }
 
-    // TODO: Different name?
-    /// Builds the theme selector widget.
-    fn theme_selector(&mut self) -> Element<AppMessage> {
+    /// Builds the global settings widget.
+    fn global_settings(&mut self) -> Element<AppMessage> {
         let title = Text::new("Global Settings").size(28);
 
         let theme_label = Text::new("Theme:");
@@ -121,7 +120,7 @@ impl RandomGeneratorState {
 /// Top-level setting state.
 pub struct SettingsState {
     // Widget States
-    theme_state: GlobalSettingsState,
+    global_settings_state: GlobalSettingsState,
     random_generator_state: RandomGeneratorState,
 
     scroll_state: scrollable::State,
@@ -131,7 +130,7 @@ pub struct SettingsState {
 impl SettingsState {
     pub fn new() -> SettingsState {
         SettingsState {
-            theme_state: GlobalSettingsState::new(),
+            global_settings_state: GlobalSettingsState::new(),
             random_generator_state: RandomGeneratorState::new(),
 
             scroll_state: scrollable::State::new(),
@@ -141,7 +140,7 @@ impl SettingsState {
 
     /// Gets the current theme.
     pub fn current_theme(&self) -> Theme {
-        self.theme_state.current_theme
+        self.global_settings_state.current_theme
     }
 
     /// Gets the length of a random generator test in seconds.
@@ -163,7 +162,7 @@ impl SettingsState {
     /// Handles any updates specific to this widget.
     pub fn update(&mut self, message: SettingsMessage) -> Command<AppMessage> {
         match message {
-            SettingsMessage::ThemeChanged(t) => self.theme_state.current_theme = t,
+            SettingsMessage::ThemeChanged(t) => self.global_settings_state.current_theme = t,
         }
 
         Command::none()
@@ -187,7 +186,7 @@ impl SettingsState {
             .height(Length::Fill)
             .width(Length::Fill)
             .style(current_theme)
-            .push(self.theme_state.theme_selector())
+            .push(self.global_settings_state.global_settings())
             .push(
                 self.random_generator_state
                     .random_generator_settings(current_theme),
