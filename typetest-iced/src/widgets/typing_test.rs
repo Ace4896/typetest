@@ -488,8 +488,9 @@ impl TypingTestState {
                 results = results.push(
                     Scrollable::new(&mut self.results_missed_scrollable)
                         .align_items(Align::Center)
-                        .padding(10)
+                        .padding(20)
                         .spacing(10)
+                        .style(theme)
                         .max_height(200)
                         .push(Text::new("Missed Words").size(28))
                         .push(missed_words_grid),
