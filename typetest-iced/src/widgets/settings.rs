@@ -119,7 +119,7 @@ impl SettingsState {
         .on_press(AppMessage::Navigate(Page::TypingTest));
 
         let main_content = Scrollable::new(&mut self.scroll_state)
-            .align_items(Align::Center)
+            .align_items(Align::Start)
             .height(Length::Fill)
             .width(Length::Fill)
             .style(current_theme)
@@ -130,6 +130,7 @@ impl SettingsState {
             .align_items(Align::Center)
             .spacing(10)
             .max_height(500)
+            .max_width(400)
             .push(title)
             .push(main_content)
             .push(back_button)
