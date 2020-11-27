@@ -6,13 +6,14 @@ mod widgets;
 use theme::Theme;
 
 use iced::{
-    executor, Align, Application, Column, Command, Container, Length, Settings, Subscription, Text,
+    button, executor, Align, Application, Button, Column, Command, Container, Element,
+    HorizontalAlignment, Length, Settings, Subscription, Text,
 };
 
 use widgets::typing_test::{TypingTestMessage, TypingTestState};
 
 /// Represents the different pages in the application.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Page {
     TypingTest,
     Settings,
@@ -29,7 +30,10 @@ pub enum AppMessage {
 pub struct TypeTestApp {
     current_page: Page,
     current_theme: Theme,
+
+    // Widget States
     typing_test_state: TypingTestState,
+    settings_button: button::State,
 }
 
 impl TypeTestApp {
@@ -37,7 +41,9 @@ impl TypeTestApp {
         TypeTestApp {
             current_page: Page::TypingTest,
             current_theme: Theme::DefaultDark,
+
             typing_test_state: TypingTestState::new(),
+            settings_button: button::State::new(),
         }
     }
 }
@@ -71,8 +77,23 @@ impl Application for TypeTestApp {
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
         let title = Text::new("TypeTest").size(40);
 
-        let inner_view = match self.current_page {
-            Page::TypingTest => self.typing_test_state.view(self.current_theme),
+        let inner_view: Element<_> = match self.current_page {
+            Page::TypingTest => {
+                let settings_button = Button::new(
+                    &mut self.settings_button,
+                    Text::new("Settings").horizontal_alignment(HorizontalAlignment::Center),
+                )
+                .min_width(100)
+                .style(self.current_theme)
+                .on_press(AppMessage::Navigate(Page::Settings));
+
+                Column::new()
+                    .align_items(Align::Center)
+                    .spacing(20)
+                    .push(self.typing_test_state.view(self.current_theme))
+                    .push(settings_button)
+                    .into()
+            }
             page => Text::new(format!("Unknown Page {:?}", page)).into(),
         };
 
