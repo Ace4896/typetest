@@ -92,7 +92,7 @@ impl Application for TypeTestApp {
         }
     }
 
-    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+    fn update(&mut self, message: Self::Message, _clipboard: &mut iced::Clipboard) -> Command<Self::Message> {
         match message {
             AppMessage::Global(g) => {
                 let typing_test_cmd = self.typing_test_state.global_update(g.clone());
