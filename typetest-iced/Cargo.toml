@@ -15,4 +15,4 @@ typetest-core = { path = "../typetest-core" }
 [dependencies.iced]
 version = "0.3"
 default-features = false
-features = ["async-std", "glow"]
+features = ["glow", "smol"]
