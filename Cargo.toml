@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "typetest-core",
-    "typetest-iced",
+    "core",
+    "iced",
 ]

@@ -10,7 +10,7 @@ name = "typetest"
 path = "src/main.rs"
 
 [dependencies]
-typetest-core = { path = "../typetest-core" }
+typetest-core = { path = "../core" }
 
 [dependencies.iced]
 version = "0.3"
