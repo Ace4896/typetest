@@ -5,7 +5,7 @@ authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-rand = { version = "0.7", features = ["small_rng"] }
+rand = { version = "0.8", features = ["small_rng"] }
 
 [dev-dependencies]
-rstest = "0.6"
+rstest = "0.7"
