@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 typetest_core = { path = "../core" }
+typetest_iced_themes = { path = "../iced_themes" }
 
 [dependencies.iced]
 version = "0.3"

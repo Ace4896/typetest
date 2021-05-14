@@ -1,12 +1,11 @@
-// Adapted from the styling example
-// https://github.com/hecrj/iced/tree/master/examples/styling
-
 use iced::{
     button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider,
     text_input, Background, Color,
 };
 
-use super::TextPalette;
+use crate::widgets::displayed_word::{self, WordPalette};
+
+use super::Theme;
 
 const BACKGROUND: Color = Color::from_rgb(
     0x2F as f32 / 255.0,
@@ -38,20 +37,43 @@ const HOVERED: Color = Color::from_rgb(
     0xC4 as f32 / 255.0,
 );
 
-pub const TEXT_PALETTE: TextPalette = TextPalette {
+const WORD_PALETTE: WordPalette = WordPalette {
     default: Color::WHITE,
     correct: Color::from_rgb(0.0, 0.75, 0.0),
     incorrect: Color::from_rgb(1.0, 0.0, 0.0),
 };
 
-pub struct WordBackground;
-impl container::StyleSheet for WordBackground {
-    fn style(&self) -> container::Style {
-        container::Style {
-            background: Some(Background::Color(Color::from_rgba(0.0, 0.0, 0.0, 0.75))),
-            border_radius: 2.0,
-            ..Default::default()
-        }
+/// The dark theme from iced's [styling example].
+///
+/// [styling example]: https://github.com/hecrj/iced/tree/master/examples/styling
+pub struct DefaultDark;
+impl Theme for DefaultDark {
+    fn button(&self) -> Box<dyn button::StyleSheet> {
+        Button.into()
+    }
+
+    fn container(&self) -> Box<dyn container::StyleSheet> {
+        Container.into()
+    }
+
+    fn pick_list(&self) -> Box<dyn pick_list::StyleSheet> {
+        PickList.into()
+    }
+
+    fn radio(&self) -> Box<dyn radio::StyleSheet> {
+        Radio.into()
+    }
+
+    fn scrollable(&self) -> Box<dyn scrollable::StyleSheet> {
+        Scrollable.into()
+    }
+
+    fn text_input(&self) -> Box<dyn text_input::StyleSheet> {
+        TextInput.into()
+    }
+
+    fn displayed_word(&self) -> Box<dyn displayed_word::StyleSheet> {
+        Box::new(DisplayedWord)
     }
 }
 
@@ -325,6 +347,30 @@ impl rule::StyleSheet for Rule {
             width: 2,
             radius: 1.0,
             fill_mode: rule::FillMode::Padded(15),
+        }
+    }
+}
+
+pub struct DisplayedWord;
+impl displayed_word::StyleSheet for DisplayedWord {
+    fn word_palette(&self) -> WordPalette {
+        WORD_PALETTE
+    }
+
+    fn word_background(&self) -> Box<dyn container::StyleSheet> {
+        Box::new(WordBackground)
+    }
+}
+
+pub struct WordBackground;
+impl container::StyleSheet for WordBackground {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(Color::from_rgba(0.0, 0.0, 0.0, 0.75))),
+            border_radius: 2.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            text_color: None,
         }
     }
 }

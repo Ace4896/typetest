@@ -4,19 +4,17 @@ use std::{
 };
 
 use iced::{
-    button, scrollable, text_input, time, Align, Button, Column, Command, Container, Element,
-    HorizontalAlignment, Row, Scrollable, Subscription, Text, TextInput,
+    button, container, scrollable, text_input, time, Align, Button, Column, Command, Container,
+    Element, HorizontalAlignment, Row, Scrollable, Subscription, Text, TextInput,
 };
 
 use typetest_core::{
     stats::TestStatistics,
     word_gen::{random::RandomWordGenerator, DisplayedWord, WordGenerator, WordStatus},
 };
+use typetest_iced_themes::{theme::Theme, AppTheme};
 
-use crate::{
-    theme::{TextPalette, Theme},
-    AppMessage, GlobalMessage,
-};
+use crate::{AppMessage, GlobalMessage};
 
 const MAX_CHARS: usize = 65;
 
@@ -99,36 +97,42 @@ fn format_time_mm_ss(seconds: u64) -> String {
 }
 
 /// Converts a [DisplayedWord] to an [iced::Text].
-fn word_to_iced_text(word: &DisplayedWord, text_palette: &TextPalette) -> Text {
+fn word_to_iced_text(word: &DisplayedWord, theme: Box<dyn Theme>) -> Text {
+    let theme = theme.displayed_word().word_palette();
     let color = match word.status {
-        WordStatus::NotTyped => text_palette.default,
-        WordStatus::Correct => text_palette.correct,
-        WordStatus::Incorrect => text_palette.incorrect,
+        WordStatus::NotTyped => theme.default,
+        WordStatus::Correct => theme.correct,
+        WordStatus::Incorrect => theme.incorrect,
     };
 
-    Text::new(&word.word).color(color).font(Theme::monospace())
+    Text::new(&word.word)
+        .color(color)
+        .font(AppTheme::monospace_font())
 }
 
 /// Converts a list of [DisplayedWord]s into an [iced::Row] of [iced::Text]s.
 fn words_to_displayed_row(
     words: &[DisplayedWord],
     current_pos: usize,
-    theme: Theme,
+    theme: Box<dyn Theme>,
 ) -> Row<AppMessage> {
-    let text_palette = theme.text_palette();
+    let word_theme = theme.displayed_word();
+    let word_background: Box<dyn container::StyleSheet> = word_theme.word_background();
+
     words
         .iter()
         .enumerate()
         .map(|(pos, w)| -> Element<_> {
-            let text = word_to_iced_text(w, text_palette);
+            let text = word_to_iced_text(w, theme);
             if current_pos == pos {
-                Container::new(text).style(theme.word_background()).into()
+                Container::new(text).style(word_background).into()
             } else {
                 text.into()
             }
         })
         .fold(Row::new().spacing(0), |row, w| {
-            row.push(w).push(Text::new(" ").font(Theme::monospace()))
+            row.push(w)
+                .push(Text::new(" ").font(AppTheme::monospace_font()))
         })
         .into()
 }
@@ -281,7 +285,7 @@ impl TypingTestState {
     }
 
     /// Creates the view for the current `TypingTestState`.
-    pub fn view(&mut self, theme: Theme) -> Element<AppMessage> {
+    pub fn view(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
         if self.status == TypingTestStatus::Finished {
             self.results_widget(theme)
         } else {
@@ -321,7 +325,7 @@ impl TypingTestState {
     }
 
     /// Builds the typing test widget.
-    fn typing_test_widget(&mut self, theme: Theme) -> Element<AppMessage> {
+    fn typing_test_widget(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
         let current_line = words_to_displayed_row(&self.current_line, self.current_pos, theme);
         let next_line = words_to_displayed_row(&self.next_line, self.next_line.len(), theme);
 
@@ -393,8 +397,8 @@ impl TypingTestState {
     }
 
     /// Builds the results widget.
-    fn results_widget(&mut self, theme: Theme) -> Element<AppMessage> {
-        let text_palette = theme.text_palette();
+    fn results_widget(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
+        let word_palette = theme.displayed_word().word_palette();
 
         let wpm = Text::new(format!("{} WPM", self.current_stats.effective_wpm)).size(30);
 
@@ -414,14 +418,14 @@ impl TypingTestState {
         let raw_wpm = Text::new(format!("{} WPM", self.current_stats.raw_wpm));
 
         let correct_chars =
-            Text::new(self.current_stats.correct_chars.to_string()).color(text_palette.correct);
+            Text::new(self.current_stats.correct_chars.to_string()).color(word_palette.correct);
         let incorrect_chars =
-            Text::new(self.current_stats.incorrect_chars.to_string()).color(text_palette.incorrect);
+            Text::new(self.current_stats.incorrect_chars.to_string()).color(word_palette.incorrect);
 
         let correct_words =
-            Text::new(self.current_stats.correct_words.to_string()).color(text_palette.correct);
+            Text::new(self.current_stats.correct_words.to_string()).color(word_palette.correct);
         let incorrect_words =
-            Text::new(self.current_stats.incorrect_words.to_string()).color(text_palette.incorrect);
+            Text::new(self.current_stats.incorrect_words.to_string()).color(word_palette.incorrect);
 
         let accuracy = Text::new(format!("{:.2}%", self.current_stats.accuracy()));
         let test_length = Text::new(format_time_mm_ss(self.last_test_length_seconds));

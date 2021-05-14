@@ -1,5 +1,9 @@
 [workspace]
 members = [
+    # Core / Common Functionality
     "core",
+
+    # Iced GUI
     "iced",
+    "iced_themes",
 ]

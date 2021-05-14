@@ -1,6 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod theme;
 mod widgets;
 
 use iced::{
@@ -8,6 +7,7 @@ use iced::{
     HorizontalAlignment, Length, Settings, Subscription, Text,
 };
 
+use typetest_iced_themes::{theme::Theme, AppTheme};
 use widgets::{
     settings::{SettingsMessage, SettingsState},
     typing_test::{TypingTestMessage, TypingTestState, TypingTestStatus},
@@ -52,6 +52,7 @@ impl GlobalMessage {
 /// Represents the main state of the application.
 pub struct TypeTestApp {
     current_page: Page,
+    current_theme: Box<dyn Theme>,
 
     // Widget States
     typing_test_state: TypingTestState,
@@ -69,6 +70,7 @@ impl TypeTestApp {
             settings_state,
 
             current_page: Page::TypingTest,
+            current_theme: AppTheme::default().into(),
 
             typing_test_state: TypingTestState::new(random_time_length),
             settings_button: button::State::new(),
@@ -92,7 +94,11 @@ impl Application for TypeTestApp {
         }
     }
 
-    fn update(&mut self, message: Self::Message, _clipboard: &mut iced::Clipboard) -> Command<Self::Message> {
+    fn update(
+        &mut self,
+        message: Self::Message,
+        _clipboard: &mut iced::Clipboard,
+    ) -> Command<Self::Message> {
         match message {
             AppMessage::Global(g) => {
                 let typing_test_cmd = self.typing_test_state.global_update(g.clone());
@@ -109,9 +115,7 @@ impl Application for TypeTestApp {
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
-        let current_theme = self.settings_state.current_theme();
         let title = Text::new("TypeTest").size(40);
-
         let inner_view: Element<_> = match self.current_page {
             Page::TypingTest => {
                 let settings_button = {
@@ -120,7 +124,7 @@ impl Application for TypeTestApp {
                         Text::new("Settings").horizontal_alignment(HorizontalAlignment::Center),
                     )
                     .min_width(100)
-                    .style(current_theme);
+                    .style(self.current_theme);
 
                     if self.typing_test_state.status != TypingTestStatus::Started {
                         tmp.on_press(AppMessage::Navigate(Page::Settings))
@@ -132,11 +136,11 @@ impl Application for TypeTestApp {
                 Column::new()
                     .align_items(Align::Center)
                     .spacing(20)
-                    .push(self.typing_test_state.view(current_theme))
+                    .push(self.typing_test_state.view(self.current_theme))
                     .push(settings_button)
                     .into()
             }
-            Page::Settings => self.settings_state.view(),
+            Page::Settings => self.settings_state.view(self.current_theme),
         };
 
         let inner_container = Container::new(inner_view)
@@ -156,7 +160,7 @@ impl Application for TypeTestApp {
             .padding(20)
             .height(Length::Fill)
             .width(Length::Fill)
-            .style(current_theme)
+            .style(self.current_theme)
             .into()
     }
 

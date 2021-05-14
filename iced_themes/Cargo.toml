@@ -1,0 +1,11 @@
+[package]
+name = "typetest_iced_themes"
+version = "0.1.0"
+authors = ["Jon Pacheco <jon.pacheco@tutanota.com>"]
+edition = "2018"
+
+# TODO: Avoid duplication with the binary crate?
+[dependencies.iced]
+version = "0.3"
+default-features = false
+features = ["glow", "smol"]
