@@ -2072,7 +2072,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "typetest-core"
+name = "typetest_core"
 version = "0.1.0"
 dependencies = [
  "rand 0.8.3",
@@ -2080,11 +2080,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "typetest-iced"
+name = "typetest_iced"
 version = "1.0.0"
 dependencies = [
  "iced",
- "typetest-core",
+ "typetest_core",
 ]
 
 [[package]]

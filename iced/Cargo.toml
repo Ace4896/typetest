@@ -1,5 +1,5 @@
 [package]
-name = "typetest-iced"
+name = "typetest_iced"
 version = "1.0.0"
 authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
@@ -10,7 +10,7 @@ name = "typetest"
 path = "src/main.rs"
 
 [dependencies]
-typetest-core = { path = "../core" }
+typetest_core = { path = "../core" }
 
 [dependencies.iced]
 version = "0.3"
