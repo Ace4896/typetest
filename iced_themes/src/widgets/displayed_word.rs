@@ -1,4 +1,4 @@
-use iced::{container, Color};
+use iced_style::{container, Color};
 
 /// A set of rules that dictate the style of a displayed word.
 pub trait StyleSheet {

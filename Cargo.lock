@@ -2092,7 +2092,8 @@ dependencies = [
 name = "typetest_iced_themes"
 version = "0.1.0"
 dependencies = [
- "iced",
+ "iced_core",
+ "iced_style",
 ]
 
 [[package]]

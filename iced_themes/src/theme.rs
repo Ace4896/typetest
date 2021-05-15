@@ -1,4 +1,4 @@
-use iced::{button, container, pick_list, radio, scrollable, text_input};
+use iced_style::{button, container, pick_list, radio, scrollable, text_input};
 
 use crate::widgets::displayed_word;
 

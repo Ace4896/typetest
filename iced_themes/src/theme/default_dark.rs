@@ -1,5 +1,5 @@
-use iced::{
-    button, checkbox, container, pick_list, progress_bar, radio, rule, scrollable, slider,
+use iced_style::{
+    button, checkbox, container, menu, pick_list, progress_bar, radio, rule, scrollable, slider,
     text_input, Background, Color,
 };
 
@@ -90,8 +90,8 @@ impl container::StyleSheet for Container {
 
 pub struct PickList;
 impl pick_list::StyleSheet for PickList {
-    fn menu(&self) -> pick_list::Menu {
-        pick_list::Menu {
+    fn menu(&self) -> menu::Style {
+        menu::Style {
             text_color: Color::WHITE,
             background: BACKGROUND.into(),
             border_width: 1.0,

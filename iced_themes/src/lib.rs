@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use iced::Font;
+use iced_core::Font;
 use theme::Theme;
 
 pub mod theme;

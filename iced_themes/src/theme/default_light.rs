@@ -1,4 +1,4 @@
-use iced::{container, Background, Color};
+use iced_style::{container, Background, Color};
 
 use crate::widgets::displayed_word::{self, WordPalette};
 
@@ -11,7 +11,7 @@ const WORD_PALETTE: WordPalette = WordPalette {
 /// The default light theme used by iced.
 pub struct DefaultLight;
 impl super::Theme for DefaultLight {
-    fn button(&self) -> Box<dyn iced::button::StyleSheet> {
+    fn button(&self) -> Box<dyn iced_style::button::StyleSheet> {
         Default::default()
     }
 
@@ -19,19 +19,19 @@ impl super::Theme for DefaultLight {
         Default::default()
     }
 
-    fn pick_list(&self) -> Box<dyn iced::pick_list::StyleSheet> {
+    fn pick_list(&self) -> Box<dyn iced_style::pick_list::StyleSheet> {
         Default::default()
     }
 
-    fn radio(&self) -> Box<dyn iced::radio::StyleSheet> {
+    fn radio(&self) -> Box<dyn iced_style::radio::StyleSheet> {
         Default::default()
     }
 
-    fn scrollable(&self) -> Box<dyn iced::scrollable::StyleSheet> {
+    fn scrollable(&self) -> Box<dyn iced_style::scrollable::StyleSheet> {
         Default::default()
     }
 
-    fn text_input(&self) -> Box<dyn iced::text_input::StyleSheet> {
+    fn text_input(&self) -> Box<dyn iced_style::text_input::StyleSheet> {
         Default::default()
     }
 
