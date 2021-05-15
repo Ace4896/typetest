@@ -19,7 +19,10 @@ pub enum SettingsMessage {
 impl From<SettingsMessage> for AppMessage {
     #[inline]
     fn from(message: SettingsMessage) -> AppMessage {
-        AppMessage::Settings(message)
+        match message {
+            SettingsMessage::ThemeChanged(t) => AppMessage::ThemeChanged(t),
+            _ => AppMessage::Settings(message),
+        }
     }
 }
 
@@ -70,7 +73,9 @@ impl SettingsState {
     /// Handles any updates specific to this widget.
     pub fn update(&mut self, message: SettingsMessage) -> Command<AppMessage> {
         match message {
-            SettingsMessage::ThemeChanged(t) => self.global_settings_state.current_theme = t,
+            SettingsMessage::ThemeChanged(t) => {
+                self.global_settings_state.current_theme = t;
+            }
         }
 
         Command::none()
