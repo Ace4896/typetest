@@ -25,8 +25,8 @@ impl From<SettingsMessage> for AppMessage {
 
 impl SettingsMessage {
     #[inline]
-    fn theme_changed(AppTheme: AppTheme) -> AppMessage {
-        SettingsMessage::ThemeChanged(AppTheme).into()
+    fn theme_changed(app_theme: AppTheme) -> AppMessage {
+        SettingsMessage::ThemeChanged(app_theme).into()
     }
 }
 
@@ -77,7 +77,7 @@ impl SettingsState {
     }
 
     /// Builds the top-level view for all settings.
-    pub fn view(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
+    pub fn view<'a>(&'a mut self, theme: &'a Box<dyn Theme>) -> Element<'a, AppMessage> {
         let back_button = Button::new(
             &mut self.back_button,
             Text::new("Back").horizontal_alignment(HorizontalAlignment::Center),
@@ -123,10 +123,10 @@ impl GlobalSettingsState {
     }
 
     /// Builds the global settings widget.
-    fn global_settings(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
+    fn global_settings<'a>(&'a mut self, theme: &'a Box<dyn Theme>) -> Element<'a, AppMessage> {
         let title = Text::new("Global Settings").size(28);
 
-        let theme_label = Text::new("AppTheme:");
+        let theme_label = Text::new("Theme:");
         let theme_pick_list = PickList::new(
             &mut self.theme_pick_list,
             &AppTheme::ALL_THEMES[..],
@@ -167,7 +167,10 @@ impl RandomGeneratorState {
 
     // TODO: Other options?
     /// Builds the widget for random generator settings.
-    fn random_generator_settings(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
+    fn random_generator_settings<'a>(
+        &'a mut self,
+        theme: &'a Box<dyn Theme>,
+    ) -> Element<'a, AppMessage> {
         const TIME_OPTIONS: [u64; 5] = [10, 30, 60, 120, 300];
 
         let title = Text::new("Random Generator Settings").size(28);

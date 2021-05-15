@@ -4,8 +4,8 @@ use std::{
 };
 
 use iced::{
-    button, container, scrollable, text_input, time, Align, Button, Column, Command, Container,
-    Element, HorizontalAlignment, Row, Scrollable, Subscription, Text, TextInput,
+    button, scrollable, text_input, time, Align, Button, Column, Command, Container, Element,
+    HorizontalAlignment, Row, Scrollable, Subscription, Text, TextInput,
 };
 
 use typetest_core::{
@@ -97,7 +97,7 @@ fn format_time_mm_ss(seconds: u64) -> String {
 }
 
 /// Converts a [DisplayedWord] to an [iced::Text].
-fn word_to_iced_text(word: &DisplayedWord, theme: Box<dyn Theme>) -> Text {
+fn word_to_iced_text(word: &DisplayedWord, theme: &Box<dyn Theme>) -> Text {
     let theme = theme.displayed_word().word_palette();
     let color = match word.status {
         WordStatus::NotTyped => theme.default,
@@ -111,13 +111,12 @@ fn word_to_iced_text(word: &DisplayedWord, theme: Box<dyn Theme>) -> Text {
 }
 
 /// Converts a list of [DisplayedWord]s into an [iced::Row] of [iced::Text]s.
-fn words_to_displayed_row(
-    words: &[DisplayedWord],
+fn words_to_displayed_row<'a>(
+    words: &'a [DisplayedWord],
     current_pos: usize,
-    theme: Box<dyn Theme>,
-) -> Row<AppMessage> {
+    theme: &'a Box<dyn Theme>,
+) -> Row<'a, AppMessage> {
     let word_theme = theme.displayed_word();
-    let word_background: Box<dyn container::StyleSheet> = word_theme.word_background();
 
     words
         .iter()
@@ -125,7 +124,9 @@ fn words_to_displayed_row(
         .map(|(pos, w)| -> Element<_> {
             let text = word_to_iced_text(w, theme);
             if current_pos == pos {
-                Container::new(text).style(word_background).into()
+                Container::new(text)
+                    .style(word_theme.word_background())
+                    .into()
             } else {
                 text.into()
             }
@@ -285,7 +286,7 @@ impl TypingTestState {
     }
 
     /// Creates the view for the current `TypingTestState`.
-    pub fn view(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
+    pub fn view<'a>(&'a mut self, theme: &'a Box<dyn Theme>) -> Element<'a, AppMessage> {
         if self.status == TypingTestStatus::Finished {
             self.results_widget(theme)
         } else {
@@ -325,7 +326,7 @@ impl TypingTestState {
     }
 
     /// Builds the typing test widget.
-    fn typing_test_widget(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
+    fn typing_test_widget<'a>(&'a mut self, theme: &'a Box<dyn Theme>) -> Element<'a, AppMessage> {
         let current_line = words_to_displayed_row(&self.current_line, self.current_pos, theme);
         let next_line = words_to_displayed_row(&self.next_line, self.next_line.len(), theme);
 
@@ -397,7 +398,7 @@ impl TypingTestState {
     }
 
     /// Builds the results widget.
-    fn results_widget(&mut self, theme: Box<dyn Theme>) -> Element<AppMessage> {
+    fn results_widget(&mut self, theme: &Box<dyn Theme>) -> Element<AppMessage> {
         let word_palette = theme.displayed_word().word_palette();
 
         let wpm = Text::new(format!("{} WPM", self.current_stats.effective_wpm)).size(30);

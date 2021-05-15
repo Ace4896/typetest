@@ -124,7 +124,7 @@ impl Application for TypeTestApp {
                         Text::new("Settings").horizontal_alignment(HorizontalAlignment::Center),
                     )
                     .min_width(100)
-                    .style(self.current_theme);
+                    .style(&self.current_theme);
 
                     if self.typing_test_state.status != TypingTestStatus::Started {
                         tmp.on_press(AppMessage::Navigate(Page::Settings))
@@ -136,11 +136,11 @@ impl Application for TypeTestApp {
                 Column::new()
                     .align_items(Align::Center)
                     .spacing(20)
-                    .push(self.typing_test_state.view(self.current_theme))
+                    .push(self.typing_test_state.view(&self.current_theme))
                     .push(settings_button)
                     .into()
             }
-            Page::Settings => self.settings_state.view(self.current_theme),
+            Page::Settings => self.settings_state.view(&self.current_theme),
         };
 
         let inner_container = Container::new(inner_view)
@@ -160,7 +160,7 @@ impl Application for TypeTestApp {
             .padding(20)
             .height(Length::Fill)
             .width(Length::Fill)
-            .style(self.current_theme)
+            .style(&self.current_theme)
             .into()
     }
 
