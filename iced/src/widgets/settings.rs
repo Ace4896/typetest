@@ -1,11 +1,16 @@
 use iced::{
-    button, pick_list, scrollable, Align, Button, Column, Command, Element, HorizontalAlignment,
-    Length, PickList, Row, Scrollable, Text,
+    button, scrollable, Align, Button, Column, Command, Element, HorizontalAlignment, Length,
+    Scrollable, Text,
 };
 
-use typetest_iced_themes::{theme::Theme, AppTheme};
+use typetest_iced_themes::theme::Theme;
 
 use crate::{AppMessage, GlobalMessage, Page};
+
+use self::{
+    global::{GlobalSettingsMessage, GlobalSettingsState},
+    random_generator::{RandomGeneratorMessage, RandomGeneratorState},
+};
 
 pub mod global;
 pub mod random_generator;
@@ -13,23 +18,14 @@ pub mod random_generator;
 /// Represents a message specific to the settings widget.
 #[derive(Clone, Debug)]
 pub enum SettingsMessage {
-    ThemeChanged(AppTheme),
+    GlobalSettings(GlobalSettingsMessage),
+    RandomGeneratorSettings(RandomGeneratorMessage),
 }
 
 impl From<SettingsMessage> for AppMessage {
     #[inline]
     fn from(message: SettingsMessage) -> AppMessage {
-        match message {
-            SettingsMessage::ThemeChanged(t) => AppMessage::ThemeChanged(t),
-            _ => AppMessage::Settings(message),
-        }
-    }
-}
-
-impl SettingsMessage {
-    #[inline]
-    fn theme_changed(app_theme: AppTheme) -> AppMessage {
-        SettingsMessage::ThemeChanged(app_theme).into()
+        AppMessage::Settings(message)
     }
 }
 
@@ -71,14 +67,17 @@ impl SettingsState {
     }
 
     /// Handles any updates specific to this widget.
-    pub fn update(&mut self, message: SettingsMessage) -> Command<AppMessage> {
+    pub fn update(&mut self, message: SettingsMessage) -> Command<SettingsMessage> {
         match message {
-            SettingsMessage::ThemeChanged(t) => {
-                self.global_settings_state.current_theme = t;
-            }
+            SettingsMessage::GlobalSettings(m) => self
+                .global_settings_state
+                .update(m)
+                .map(SettingsMessage::from),
+            SettingsMessage::RandomGeneratorSettings(m) => self
+                .random_generator_state
+                .update(m)
+                .map(SettingsMessage::from),
         }
-
-        Command::none()
     }
 
     /// Builds the top-level view for all settings.
@@ -91,114 +90,31 @@ impl SettingsState {
         .style(theme)
         .on_press(AppMessage::Navigate(Page::TypingTest));
 
-        let main_content = Scrollable::new(&mut self.scroll_state)
+        let main_content: Element<SettingsMessage> = Scrollable::new(&mut self.scroll_state)
             .align_items(Align::Start)
             .spacing(20)
             .height(Length::Fill)
             .width(Length::Fill)
             .style(theme)
-            .push(self.global_settings_state.global_settings(theme))
-            .push(self.random_generator_state.random_generator_settings(theme));
+            .push(
+                self.global_settings_state
+                    .view(theme)
+                    .map(SettingsMessage::from),
+            )
+            .push(
+                self.random_generator_state
+                    .view(theme)
+                    .map(SettingsMessage::from),
+            )
+            .into();
 
         Column::new()
             .align_items(Align::Center)
             .spacing(10)
             .max_height(500)
             .max_width(400)
-            .push(main_content)
+            .push(main_content.map(AppMessage::from))
             .push(back_button)
-            .into()
-    }
-}
-
-/// Represents the state for any global settings.
-pub struct GlobalSettingsState {
-    pub current_theme: AppTheme,
-
-    theme_pick_list: pick_list::State<AppTheme>,
-}
-
-impl GlobalSettingsState {
-    pub fn new() -> GlobalSettingsState {
-        GlobalSettingsState {
-            current_theme: AppTheme::DefaultDark,
-
-            theme_pick_list: pick_list::State::default(),
-        }
-    }
-
-    /// Builds the global settings widget.
-    fn global_settings<'a>(&'a mut self, theme: &'a Box<dyn Theme>) -> Element<'a, AppMessage> {
-        let title = Text::new("Global Settings").size(28);
-
-        let theme_label = Text::new("Theme:");
-        let theme_pick_list = PickList::new(
-            &mut self.theme_pick_list,
-            &AppTheme::ALL_THEMES[..],
-            Some(self.current_theme),
-            SettingsMessage::theme_changed,
-        )
-        .style(theme);
-
-        let theme_selector = Row::new()
-            .align_items(Align::Center)
-            .spacing(10)
-            .push(theme_label)
-            .push(theme_pick_list);
-
-        Column::new()
-            .spacing(10)
-            .push(title)
-            .push(theme_selector)
-            .into()
-    }
-}
-
-pub struct RandomGeneratorState {
-    pub time_length_seconds: u64,
-
-    // Widget State
-    time_length_pick_list: pick_list::State<u64>,
-}
-
-impl RandomGeneratorState {
-    pub fn new() -> RandomGeneratorState {
-        RandomGeneratorState {
-            time_length_seconds: 60,
-
-            time_length_pick_list: pick_list::State::default(),
-        }
-    }
-
-    // TODO: Other options?
-    /// Builds the widget for random generator settings.
-    fn random_generator_settings<'a>(
-        &'a mut self,
-        theme: &'a Box<dyn Theme>,
-    ) -> Element<'a, AppMessage> {
-        const TIME_OPTIONS: [u64; 5] = [10, 30, 60, 120, 300];
-
-        let title = Text::new("Random Generator Settings").size(28);
-
-        let time_length_label = Text::new("Test Length (Time):");
-        let time_length_pick_list = PickList::new(
-            &mut self.time_length_pick_list,
-            &TIME_OPTIONS[..],
-            Some(self.time_length_seconds),
-            GlobalMessage::time_length_changed,
-        )
-        .style(theme);
-
-        let time_length = Row::new()
-            .align_items(Align::Center)
-            .spacing(10)
-            .push(time_length_label)
-            .push(time_length_pick_list);
-
-        Column::new()
-            .spacing(10)
-            .push(title)
-            .push(time_length)
             .into()
     }
 }

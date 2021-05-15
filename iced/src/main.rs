@@ -113,7 +113,7 @@ impl Application for TypeTestApp {
                 Command::none()
             }
             AppMessage::TypingTest(m) => self.typing_test_state.update(m),
-            AppMessage::Settings(s) => self.settings_state.update(s),
+            AppMessage::Settings(s) => self.settings_state.update(s).map(AppMessage::from),
             AppMessage::ThemeChanged(app_theme) => {
                 self.current_theme = app_theme.into();
                 Command::none()
