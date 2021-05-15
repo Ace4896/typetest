@@ -117,7 +117,7 @@ impl Application for TypeTestApp {
             AppMessage::ThemeChanged(app_theme) => {
                 self.current_theme = app_theme.into();
                 Command::none()
-            },
+            }
         }
     }
 
@@ -147,7 +147,10 @@ impl Application for TypeTestApp {
                     .push(settings_button)
                     .into()
             }
-            Page::Settings => self.settings_state.view(&self.current_theme),
+            Page::Settings => self
+                .settings_state
+                .view(&self.current_theme)
+                .map(AppMessage::from),
         };
 
         let inner_container = Container::new(inner_view)

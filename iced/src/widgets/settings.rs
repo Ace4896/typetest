@@ -18,6 +18,7 @@ pub mod random_generator;
 /// Represents a message specific to the settings widget.
 #[derive(Clone, Debug)]
 pub enum SettingsMessage {
+    NavigateBack,
     GlobalSettings(GlobalSettingsMessage),
     RandomGeneratorSettings(RandomGeneratorMessage),
 }
@@ -25,7 +26,10 @@ pub enum SettingsMessage {
 impl From<SettingsMessage> for AppMessage {
     #[inline]
     fn from(message: SettingsMessage) -> AppMessage {
-        AppMessage::Settings(message)
+        match message {
+            SettingsMessage::NavigateBack => AppMessage::Navigate(Page::TypingTest),
+            _ => AppMessage::Settings(message),
+        }
     }
 }
 
@@ -77,20 +81,21 @@ impl SettingsState {
                 .random_generator_state
                 .update(m)
                 .map(SettingsMessage::from),
+            _ => Command::none(),
         }
     }
 
     /// Builds the top-level view for all settings.
-    pub fn view<'a>(&'a mut self, theme: &'a Box<dyn Theme>) -> Element<'a, AppMessage> {
+    pub fn view<'a>(&'a mut self, theme: &'a Box<dyn Theme>) -> Element<'a, SettingsMessage> {
         let back_button = Button::new(
             &mut self.back_button,
             Text::new("Back").horizontal_alignment(HorizontalAlignment::Center),
         )
         .min_width(100)
         .style(theme)
-        .on_press(AppMessage::Navigate(Page::TypingTest));
+        .on_press(SettingsMessage::NavigateBack);
 
-        let main_content: Element<SettingsMessage> = Scrollable::new(&mut self.scroll_state)
+        let main_content = Scrollable::new(&mut self.scroll_state)
             .align_items(Align::Start)
             .spacing(20)
             .height(Length::Fill)
@@ -105,15 +110,14 @@ impl SettingsState {
                 self.random_generator_state
                     .view(theme)
                     .map(SettingsMessage::from),
-            )
-            .into();
+            );
 
         Column::new()
             .align_items(Align::Center)
             .spacing(10)
             .max_height(500)
             .max_width(400)
-            .push(main_content.map(AppMessage::from))
+            .push(main_content)
             .push(back_button)
             .into()
     }
