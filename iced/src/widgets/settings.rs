@@ -3,9 +3,9 @@ use iced::{
     Scrollable, Text,
 };
 
-use typetest_iced_themes::theme::Theme;
+use typetest_iced_themes::{theme::Theme, AppTheme};
 
-use crate::{AppMessage, GlobalMessage, Page};
+use crate::{AppMessage, GlobalMessage};
 
 use self::{
     global::{GlobalSettingsMessage, GlobalSettingsState},
@@ -19,6 +19,8 @@ pub mod random_generator;
 #[derive(Clone, Debug)]
 pub enum SettingsMessage {
     NavigateBack,
+    ThemeChanged(AppTheme),
+
     GlobalSettings(GlobalSettingsMessage),
     RandomGeneratorSettings(RandomGeneratorMessage),
 }
@@ -26,10 +28,7 @@ pub enum SettingsMessage {
 impl From<SettingsMessage> for AppMessage {
     #[inline]
     fn from(message: SettingsMessage) -> AppMessage {
-        match message {
-            SettingsMessage::NavigateBack => AppMessage::Navigate(Page::TypingTest),
-            _ => AppMessage::Settings(message),
-        }
+        AppMessage::Settings(message)
     }
 }
 
@@ -73,6 +72,10 @@ impl SettingsState {
     /// Handles any updates specific to this widget.
     pub fn update(&mut self, message: SettingsMessage) -> Command<SettingsMessage> {
         match message {
+            SettingsMessage::ThemeChanged(t) => self
+                .global_settings_state
+                .update(GlobalSettingsMessage::ThemeChanged(t))
+                .map(SettingsMessage::from),
             SettingsMessage::GlobalSettings(m) => self
                 .global_settings_state
                 .update(m)

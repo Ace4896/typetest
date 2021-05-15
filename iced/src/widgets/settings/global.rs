@@ -13,7 +13,9 @@ pub enum GlobalSettingsMessage {
 impl From<GlobalSettingsMessage> for SettingsMessage {
     #[inline]
     fn from(m: GlobalSettingsMessage) -> Self {
-        SettingsMessage::GlobalSettings(m)
+        match m {
+            GlobalSettingsMessage::ThemeChanged(t) => SettingsMessage::ThemeChanged(t),
+        }
     }
 }
 

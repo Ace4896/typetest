@@ -27,9 +27,6 @@ pub enum AppMessage {
     Navigate(Page),
     TypingTest(TypingTestMessage),
     Settings(SettingsMessage),
-
-    // TODO: Better propagation from other views
-    ThemeChanged(AppTheme),
 }
 
 /// Represents a message that is to be sent to all top-level widgets.
@@ -112,11 +109,13 @@ impl Application for TypeTestApp {
                 self.current_page = page;
                 Command::none()
             }
-            AppMessage::TypingTest(m) => self.typing_test_state.update(m),
-            AppMessage::Settings(s) => self.settings_state.update(s).map(AppMessage::from),
-            AppMessage::ThemeChanged(app_theme) => {
-                self.current_theme = app_theme.into();
-                Command::none()
+            AppMessage::TypingTest(message) => self.typing_test_state.update(message),
+            AppMessage::Settings(message) => {
+                if let SettingsMessage::ThemeChanged(app_theme) = message {
+                    self.current_theme = app_theme.into();
+                }
+
+                self.settings_state.update(message).map(AppMessage::from)
             }
         }
     }
