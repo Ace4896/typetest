@@ -111,8 +111,17 @@ impl Application for TypeTestApp {
             }
             AppMessage::TypingTest(message) => self.typing_test_state.update(message),
             AppMessage::Settings(message) => {
-                if let SettingsMessage::ThemeChanged(app_theme) = message {
-                    self.current_theme = app_theme.into();
+                // Propagate settings changes to other widgets
+                match message {
+                    SettingsMessage::ThemeChanged(app_theme) => {
+                        self.current_theme = app_theme.into()
+                    }
+                    SettingsMessage::TimeLengthChanged(t) => {
+                        // TODO: Remove global update altogether
+                        self.typing_test_state
+                            .global_update(GlobalMessage::TimeLengthChanged(t));
+                    }
+                    _ => {}
                 }
 
                 self.settings_state.update(message).map(AppMessage::from)

@@ -12,7 +12,9 @@ pub enum RandomGeneratorMessage {
 impl From<RandomGeneratorMessage> for SettingsMessage {
     #[inline]
     fn from(m: RandomGeneratorMessage) -> Self {
-        SettingsMessage::RandomGeneratorSettings(m)
+        match m {
+            RandomGeneratorMessage::TimeLengthChanged(t) => SettingsMessage::TimeLengthChanged(t),
+        }
     }
 }
 

@@ -5,7 +5,7 @@ use iced::{
 
 use typetest_iced_themes::{theme::Theme, AppTheme};
 
-use crate::{AppMessage, GlobalMessage};
+use crate::{AppMessage, GlobalMessage, Page};
 
 use self::{
     global::{GlobalSettingsMessage, GlobalSettingsState},
@@ -20,6 +20,7 @@ pub mod random_generator;
 pub enum SettingsMessage {
     NavigateBack,
     ThemeChanged(AppTheme),
+    TimeLengthChanged(u64),
 
     GlobalSettings(GlobalSettingsMessage),
     RandomGeneratorSettings(RandomGeneratorMessage),
@@ -28,7 +29,10 @@ pub enum SettingsMessage {
 impl From<SettingsMessage> for AppMessage {
     #[inline]
     fn from(message: SettingsMessage) -> AppMessage {
-        AppMessage::Settings(message)
+        match message {
+            SettingsMessage::NavigateBack => AppMessage::Navigate(Page::TypingTest),
+            _ => AppMessage::Settings(message),
+        }
     }
 }
 
@@ -75,6 +79,10 @@ impl SettingsState {
             SettingsMessage::ThemeChanged(t) => self
                 .global_settings_state
                 .update(GlobalSettingsMessage::ThemeChanged(t))
+                .map(SettingsMessage::from),
+            SettingsMessage::TimeLengthChanged(t) => self
+                .random_generator_state
+                .update(RandomGeneratorMessage::TimeLengthChanged(t))
                 .map(SettingsMessage::from),
             SettingsMessage::GlobalSettings(m) => self
                 .global_settings_state
