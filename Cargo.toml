@@ -2,6 +2,7 @@
 members = [
     # Core / Common Functionality
     "core",
+    "core_new",
 
     # Iced GUI
     "iced",
