@@ -8,4 +8,4 @@ edition = "2018"
 rand = { version = "0.8", features = ["small_rng"] }
 
 [dev-dependencies]
-rstest = "0.7"
+rstest = "0.10"

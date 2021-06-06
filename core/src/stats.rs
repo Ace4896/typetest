@@ -1,71 +1,90 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::{
+    cmp::Ordering,
+    time::{Duration, Instant},
+};
 
-// TODO: Accuracy unit tests
+/// Stores statistics for a typing test.
+pub struct TestStats {
+    test_start: Instant,
+    checkpoints: Vec<TestCheckpoint>,
+    missed_words: Vec<MissedWord>,
 
-/// Stores the following statistics for a typing test:
+    correct_chars: u64,
+    incorrect_chars: u64,
+    correct_words: u64,
+    incorrect_words: u64,
+}
+
+/// Represents a statistics checkpoint in a typing test.
 ///
-/// - No. of correct/incorrect characters
-/// - No. of correct/incorrect words
-/// - No. of seconds elapsed
-/// - Effective WPM since last time update
-/// - Raw WPM since last time update
-/// - Accuracy
-/// - Words which were typed incorrectly, and how often this happened
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct TestStatistics {
-    missed_words: HashMap<String, u64>,
+/// Eventually, this will be used for graphing WPM.
+pub struct TestCheckpoint {
+    pub elapsed: Duration,
+
     pub correct_chars: u64,
     pub incorrect_chars: u64,
     pub correct_words: u64,
     pub incorrect_words: u64,
-    pub elapsed_seconds: u64,
-    pub effective_wpm: u64,
-    pub raw_wpm: u64,
 }
 
-impl TestStatistics {
-    /// Returns a HashMap with the missed words and how many times they were incorrectly entered.
-    pub fn get_missed_words(&self) -> &HashMap<String, u64> {
+/// Represents a missed word in a typing test.
+#[derive(PartialEq)]
+pub struct MissedWord {
+    pub expected: String,
+    pub actual: String,
+}
+
+impl TestStats {
+    /// Creates a new instance of test statistics.
+    pub fn new() -> Self {
+        Self {
+            test_start: Instant::now(),
+            checkpoints: Vec::new(),
+            missed_words: Vec::new(),
+
+            correct_chars: 0,
+            incorrect_chars: 0,
+            correct_words: 0,
+            incorrect_words: 0,
+        }
+    }
+
+    /// Gets the list of missed words (in the order they were typed).
+    pub fn get_missed_words(&self) -> &[MissedWord] {
         &self.missed_words
     }
 
-    /// Resets the current test statistics.
-    pub fn reset(&mut self) {
+    /// Gets the latest statistics checkpoint.
+    pub fn get_latest_checkpoint(&self) -> Option<&TestCheckpoint> {
+        self.checkpoints.last()
+    }
+
+    /// Starts the next test.
+    pub fn next_test(&mut self) {
+        self.test_start = Instant::now();
+        self.checkpoints.clear();
         self.missed_words.clear();
+
         self.correct_chars = 0;
         self.incorrect_chars = 0;
         self.correct_words = 0;
         self.incorrect_words = 0;
-        self.elapsed_seconds = 0;
-        self.effective_wpm = 0;
-        self.raw_wpm = 0;
     }
 
-    /// Gets the current accuracy as a percentage.
-    ///
-    /// This isn't stored to save on calculations.
-    pub fn accuracy(&self) -> f32 {
-        (self.correct_chars as f32 / (self.correct_chars + self.incorrect_chars) as f32) * 100.0
-    }
-
-    /// Submits a word and compares it to the expected variant, updating the character/word statistics accordingly.
-    ///
-    /// WPM is not updated here to save a few calculations.
+    /// Submits a word for the current test, returning whether it was correct or not.
     pub fn submit_word(&mut self, expected: &str, actual: &str) -> bool {
         if expected.is_empty() {
             return false;
         }
 
         if expected == actual {
-            // NOTE: +1 due to spacebar
+            // NOTE: +1 to chars due to spacebar
             self.correct_chars += expected.len() as u64 + 1;
             self.correct_words += 1;
 
             true
         } else {
             self.incorrect_words += 1;
-            let missed_entry = self.missed_words.entry(expected.to_string()).or_insert(0);
-            *missed_entry += 1;
 
             // Count how many characters are correct
             expected
@@ -91,23 +110,54 @@ impl TestStatistics {
                 }
             }
 
+            self.missed_words.push(MissedWord::new(expected, actual));
+
             false
         }
     }
 
-    /// Updates the WPM statistics based on the number of elapsed seconds.
-    pub fn update_wpm(&mut self, elapsed_secs: u64) {
-        if elapsed_secs == 0 {
-            return;
-        }
+    /// Saves a statistics checkpoint the test.
+    pub fn checkpoint(&mut self) {
+        let checkpoint = TestCheckpoint {
+            elapsed: Instant::now().duration_since(self.test_start),
 
-        self.elapsed_seconds += elapsed_secs;
-        let effective = self.correct_chars as f32 / 5.0 / self.elapsed_seconds as f32 * 60.0;
-        let raw =
-            (self.correct_chars + self.incorrect_chars) as f32 / 5.0 / self.elapsed_seconds as f32
-                * 60.0;
-        self.effective_wpm = effective as u64;
-        self.raw_wpm = raw as u64;
+            correct_chars: self.correct_chars,
+            incorrect_chars: self.incorrect_chars,
+            correct_words: self.correct_words,
+            incorrect_words: self.incorrect_words,
+        };
+
+        self.checkpoints.push(checkpoint);
+    }
+}
+
+impl TestCheckpoint {
+    /// Calculates the accuracy for this checkpoint.
+    pub fn accuracy(&self) -> f32 {
+        (self.correct_chars as f32 / (self.correct_chars + self.incorrect_chars) as f32) * 100.0
+    }
+
+    /// Calculates the effective WPM for this checkpoint.
+    /// Uses 1 WPM = 5 CPM for this calculation.
+    pub fn effective_wpm(&self) -> u64 {
+        (self.correct_chars as f32 / 5.0 / self.elapsed.as_secs_f32() * 60.0) as u64
+    }
+
+    /// Calculates the raw WPM for this checkpoint.
+    /// Uses 1 WPM = 5 CPM for this calculation.
+    pub fn raw_wpm(&self) -> u64 {
+        ((self.correct_chars + self.incorrect_chars) as f32 / 5.0 / self.elapsed.as_secs_f32()
+            * 60.0) as u64
+    }
+}
+
+impl MissedWord {
+    /// Creates a new instance of a missed word.
+    pub fn new(expected: impl Into<String>, actual: impl Into<String>) -> Self {
+        Self {
+            expected: expected.into(),
+            actual: actual.into(),
+        }
     }
 }
 
@@ -117,132 +167,138 @@ mod tests {
 
     use rstest::*;
 
-    #[test]
-    fn reset_reinitialises_correct_values() {
-        let mut stats = TestStatistics::default();
-        stats.submit_word("REDO", "REDO");
-        stats.submit_word("REDO", "redo");
-        stats.submit_word("REDO", "RE");
-        stats.submit_word("REDO", "REDOOO");
-        stats.update_wpm(1);
+    mod test_stats {
+        use super::*;
 
-        stats.reset();
+        #[test]
+        fn submit_word_with_empty_expected_word_returns_false() {
+            let mut stats = TestStats::new();
+            let is_correct = stats.submit_word("", "");
 
-        assert_eq!(0, stats.correct_chars);
-        assert_eq!(0, stats.incorrect_chars);
-        assert_eq!(0, stats.correct_words);
-        assert_eq!(0, stats.incorrect_words);
+            assert!(!is_correct);
+        }
 
-        assert_eq!(0, stats.elapsed_seconds);
+        #[test]
+        fn submit_word_with_correct_word_updates_correct_stats() {
+            let mut stats = TestStats::new();
+            let is_correct = stats.submit_word("REDO", "REDO");
 
-        assert_eq!(0, stats.effective_wpm);
-        assert_eq!(0, stats.raw_wpm);
+            assert!(is_correct);
+            assert!(stats.get_missed_words().is_empty());
 
-        assert!(stats.get_missed_words().is_empty());
+            // 4 chars for REDO, 1 for spacebar
+            assert_eq!(5, stats.correct_chars);
+            assert_eq!(1, stats.correct_words);
+
+            assert_eq!(0, stats.incorrect_chars);
+            assert_eq!(0, stats.incorrect_words);
+
+            assert!(stats.get_missed_words().is_empty());
+        }
+
+        #[rstest(
+            expected,
+            actual,
+            correct_chars,
+            incorrect_chars,
+            case("REDO", "redo", 1, 4),
+            case("REDO", "RED", 3, 2),
+            case("REDO", "REDOO", 4, 2),
+            case("REDO", "rEdO", 3, 2)
+        )]
+        fn submit_word_with_incorrect_word_updates_correct_stats(
+            expected: &str,
+            actual: &str,
+            correct_chars: u64,
+            incorrect_chars: u64,
+        ) {
+            let mut stats = TestStats::new();
+
+            let is_correct = stats.submit_word(expected, actual);
+
+            assert!(!is_correct);
+
+            assert_eq!(correct_chars, stats.correct_chars);
+            assert_eq!(incorrect_chars, stats.incorrect_chars);
+
+            assert_eq!(0, stats.correct_words);
+            assert_eq!(1, stats.incorrect_words);
+
+            assert!(stats
+                .get_missed_words()
+                .contains(&MissedWord::new(expected, actual)));
+        }
     }
 
-    #[test]
-    fn submit_word_with_empty_expected_word_returns_false() {
-        let mut stats = TestStatistics::default();
-        let is_correct = stats.submit_word("", "");
+    mod test_checkpoint {
+        use super::*;
 
-        assert!(!is_correct);
-    }
+        #[rstest(
+            correct_chars,
+            incorrect_chars,
+            expected_accuracy,
+            case(10, 0, 100.0),
+            case(10, 10, 50.0),
+            case(5, 20, 20.0)
+        )]
+        fn accuracy(correct_chars: u64, incorrect_chars: u64, expected_accuracy: f32) {
+            let checkpoint = TestCheckpoint {
+                elapsed: Duration::from_secs(0),
 
-    #[test]
-    fn submit_word_with_correct_word_updates_correct_stats() {
-        let mut stats = TestStatistics::default();
-        let is_correct = stats.submit_word("REDO", "REDO");
+                correct_chars,
+                incorrect_chars,
+                correct_words: 0,
+                incorrect_words: 0,
+            };
 
-        assert!(is_correct);
-        assert!(stats.get_missed_words().is_empty());
+            assert!((expected_accuracy - checkpoint.accuracy()) < 0.01);
+        }
 
-        // 4 chars for REDO, 1 for spacebar
-        assert_eq!(5, stats.correct_chars);
-        assert_eq!(1, stats.correct_words);
+        #[rstest(
+            elapsed,
+            correct_chars,
+            incorrect_chars,
+            expected_wpm,
+            case(Duration::from_secs(60), 100, 80, 20),
+            case(Duration::from_secs(30), 100, 80, 40)
+        )]
+        fn effective_wpm(
+            elapsed: Duration,
+            correct_chars: u64,
+            incorrect_chars: u64,
+            expected_wpm: u64,
+        ) {
+            let checkpoint = TestCheckpoint {
+                elapsed,
 
-        assert_eq!(0, stats.incorrect_chars);
-        assert_eq!(0, stats.incorrect_words);
+                correct_chars,
+                incorrect_chars,
+                correct_words: 0,
+                incorrect_words: 0,
+            };
 
-        assert!(stats.get_missed_words().is_empty());
-    }
+            assert_eq!(expected_wpm, checkpoint.effective_wpm());
+        }
 
-    #[rstest(
-        expected,
-        actual,
-        correct_chars,
-        incorrect_chars,
-        case("REDO", "redo", 1, 4),
-        case("REDO", "RED", 3, 2),
-        case("REDO", "REDOO", 4, 2),
-        case("REDO", "rEdO", 3, 2)
-    )]
-    fn submit_word_with_incorrect_word_updates_correct_stats(
-        expected: &str,
-        actual: &str,
-        correct_chars: u64,
-        incorrect_chars: u64,
-    ) {
-        let mut stats = TestStatistics::default();
+        #[rstest(
+            elapsed,
+            correct_chars,
+            incorrect_chars,
+            expected_wpm,
+            case(Duration::from_secs(60), 100, 80, 36),
+            case(Duration::from_secs(30), 100, 80, 72)
+        )]
+        fn raw_wpm(elapsed: Duration, correct_chars: u64, incorrect_chars: u64, expected_wpm: u64) {
+            let checkpoint = TestCheckpoint {
+                elapsed,
 
-        let is_correct = stats.submit_word(expected, actual);
+                correct_chars,
+                incorrect_chars,
+                correct_words: 0,
+                incorrect_words: 0,
+            };
 
-        assert!(!is_correct);
-
-        assert_eq!(correct_chars, stats.correct_chars);
-        assert_eq!(incorrect_chars, stats.incorrect_chars);
-
-        assert_eq!(0, stats.correct_words);
-        assert_eq!(1, stats.incorrect_words);
-
-        assert!(stats.get_missed_words().contains_key(expected));
-    }
-
-    #[test]
-    fn update_wpm_with_0_secs_does_not_update_stats() {
-        let mut stats = TestStatistics::default();
-
-        stats.update_wpm(0);
-
-        assert_eq!(0, stats.elapsed_seconds);
-        assert_eq!(0, stats.effective_wpm);
-        assert_eq!(0, stats.raw_wpm);
-    }
-
-    #[test]
-    fn update_wpm_with_positive_secs_updates_correct_stats() {
-        let mut stats = TestStatistics::default();
-
-        // Submit the following:
-        //   REDO, REDO: 5 correct, 0 incorrect
-        //   REDO, redo: 1 correct, 4 incorrect
-        //     REDO, RE: 2 correct, 3 incorrect
-        // REDO, REDOOO: 4 correct, 3 incorrect
-        //
-        // Total:
-        // - Correct Chars: 12
-        // - Correct Words: 1
-        // - Incorrect Chars: 10
-        // - Incorrect Words: 3
-        stats.submit_word("REDO", "REDO");
-        stats.submit_word("REDO", "redo");
-        stats.submit_word("REDO", "RE");
-        stats.submit_word("REDO", "REDOOO");
-
-        assert_eq!(12, stats.correct_chars);
-        assert_eq!(1, stats.correct_words);
-        assert_eq!(10, stats.incorrect_chars);
-        assert_eq!(3, stats.incorrect_words);
-
-        // Pretend that 2 seconds have elapsed
-        // Expected Statistics:
-        // - Effective WPM:
-        //   12 / 5 / 2 * 60 = 72 WPM
-        // - Raw WPM:
-        //   (12 + 10) / 5 / 2 * 60 = 132 WPM
-        stats.update_wpm(2);
-
-        assert_eq!(72, stats.effective_wpm);
-        assert_eq!(132, stats.raw_wpm);
+            assert_eq!(expected_wpm, checkpoint.raw_wpm());
+        }
     }
 }

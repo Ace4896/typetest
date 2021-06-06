@@ -1,5 +1,5 @@
-/// An array for the default word pool.
-pub const DEFAULT_WORDS: [&'static str; 200] = [
+/// The default english word pool with 200 common words.
+pub const DEFAULT_ENGLISH: [&'static str; 200] = [
     "the",
     "be",
     "of",

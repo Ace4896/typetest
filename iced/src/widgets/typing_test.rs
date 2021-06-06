@@ -9,9 +9,10 @@ use iced::{
 };
 
 use typetest_core::{
-    stats::TestStatistics,
-    word_gen::{random::RandomWordGenerator, DisplayedWord, WordGenerator, WordStatus},
+    stats::TestStats,
+    word_generators::{random::InfiniteWordGenerator, DisplayedWord, WordGenerator, WordStatus},
 };
+
 use typetest_iced_themes::{theme::Theme, AppTheme};
 
 use crate::{AppMessage, GlobalMessage};
@@ -60,7 +61,7 @@ pub enum TypingTestStatus {
 /// Represents the current state for a typing test.
 pub struct TypingTestState {
     word_gen: Box<dyn WordGenerator>,
-    pub current_stats: TestStatistics,
+    pub current_stats: TestStats,
     pub status: TypingTestStatus,
 
     current_pos: usize,
@@ -140,19 +141,19 @@ fn words_to_displayed_row<'a>(
 
 impl TypingTestState {
     pub fn new(test_length: u64) -> TypingTestState {
-        let mut word_gen = Box::new(RandomWordGenerator::default());
+        let mut word_gen = Box::new(InfiniteWordGenerator::default());
         let mut current_line = Vec::new();
         let mut next_line = Vec::new();
 
-        word_gen.fill_words(&mut current_line, MAX_CHARS);
-        word_gen.fill_words(&mut next_line, MAX_CHARS);
+        word_gen.fill_line(&mut current_line, MAX_CHARS);
+        word_gen.fill_line(&mut next_line, MAX_CHARS);
 
         TypingTestState {
             word_gen,
             current_line,
             next_line,
 
-            current_stats: TestStatistics::default(),
+            current_stats: TestStats::new(),
             status: TypingTestStatus::NotStarted,
 
             current_pos: 0,
@@ -211,8 +212,7 @@ impl TypingTestState {
 
                 let new_remaining = self.test_length_seconds - elapsed;
                 if self.remaining_seconds != new_remaining {
-                    self.current_stats
-                        .update_wpm(self.remaining_seconds - new_remaining);
+                    self.current_stats.checkpoint();
                     self.remaining_seconds = new_remaining;
                 }
 
@@ -230,6 +230,7 @@ impl TypingTestState {
                 if self.status == TypingTestStatus::NotStarted {
                     self.status = TypingTestStatus::Started;
                     self.test_start = Instant::now();
+                    self.current_stats.next_test();
                 }
 
                 // If it ends in a space, prepare to submit the word
@@ -249,7 +250,7 @@ impl TypingTestState {
                         if self.current_pos >= self.current_line.len() - 1 {
                             self.current_pos = 0;
                             mem::swap(&mut self.current_line, &mut self.next_line);
-                            self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
+                            self.word_gen.fill_line(&mut self.next_line, MAX_CHARS);
 
                             // If we're using a finite word generator and the next line is empty, test is done
                             if self.next_line.is_empty() {
@@ -309,20 +310,20 @@ impl TypingTestState {
     /// Resets the state of the typing test.
     fn reset_test_state(&mut self, new_test: bool) {
         if new_test {
-            self.word_gen.prepare_for_next_test();
+            self.word_gen.next_test();
         } else {
-            self.word_gen.prepare_for_retry();
+            self.word_gen.redo();
         }
 
         self.status = TypingTestStatus::NotStarted;
-        self.current_stats.reset();
+        self.current_stats.next_test();
         self.current_pos = 0;
         self.current_input.clear();
         self.remaining_seconds = self.test_length_seconds;
         self.show_missed_words = false;
 
-        self.word_gen.fill_words(&mut self.current_line, MAX_CHARS);
-        self.word_gen.fill_words(&mut self.next_line, MAX_CHARS);
+        self.word_gen.fill_line(&mut self.current_line, MAX_CHARS);
+        self.word_gen.fill_line(&mut self.next_line, MAX_CHARS);
     }
 
     /// Builds the typing test widget.
@@ -346,7 +347,13 @@ impl TypingTestState {
         .style(theme);
 
         let wpm_text = if self.show_wpm {
-            format!("{} WPM", self.current_stats.effective_wpm)
+            let wpm = self
+                .current_stats
+                .get_latest_checkpoint()
+                .map(|checkpoint| checkpoint.effective_wpm())
+                .unwrap_or_default();
+
+            format!("{} WPM", wpm)
         } else {
             String::from(" ")
         };
@@ -400,8 +407,11 @@ impl TypingTestState {
     /// Builds the results widget.
     fn results_widget(&mut self, theme: &Box<dyn Theme>) -> Element<AppMessage> {
         let word_palette = theme.displayed_word().word_palette();
-
-        let wpm = Text::new(format!("{} WPM", self.current_stats.effective_wpm)).size(30);
+        let checkpoint = self
+            .current_stats
+            .get_latest_checkpoint()
+            .expect("No test results to display!");
+        let wpm = Text::new(format!("{} WPM", checkpoint.effective_wpm())).size(30);
 
         // Labels
         const LABEL_SPACING: u16 = 10;
@@ -416,19 +426,19 @@ impl TypingTestState {
             .push(Text::new("Accuracy:"))
             .push(Text::new("Test Length:"));
 
-        let raw_wpm = Text::new(format!("{} WPM", self.current_stats.raw_wpm));
+        let raw_wpm = Text::new(format!("{} WPM", checkpoint.raw_wpm()));
 
         let correct_chars =
-            Text::new(self.current_stats.correct_chars.to_string()).color(word_palette.correct);
+            Text::new(checkpoint.correct_chars.to_string()).color(word_palette.correct);
         let incorrect_chars =
-            Text::new(self.current_stats.incorrect_chars.to_string()).color(word_palette.incorrect);
+            Text::new(checkpoint.incorrect_chars.to_string()).color(word_palette.incorrect);
 
         let correct_words =
-            Text::new(self.current_stats.correct_words.to_string()).color(word_palette.correct);
+            Text::new(checkpoint.correct_words.to_string()).color(word_palette.correct);
         let incorrect_words =
-            Text::new(self.current_stats.incorrect_words.to_string()).color(word_palette.incorrect);
+            Text::new(checkpoint.incorrect_words.to_string()).color(word_palette.incorrect);
 
-        let accuracy = Text::new(format!("{:.2}%", self.current_stats.accuracy()));
+        let accuracy = Text::new(format!("{:.2}%", checkpoint.accuracy()));
         let test_length = Text::new(format_time_mm_ss(self.last_test_length_seconds));
 
         let values = Column::new()
@@ -488,18 +498,18 @@ impl TypingTestState {
             .push(stats_grid);
 
         if self.show_missed_words {
-            let missed_words_map = self.current_stats.get_missed_words();
-            if !missed_words_map.is_empty() {
+            let missed_words = self.current_stats.get_missed_words();
+            if !missed_words.is_empty() {
                 // TODO: Grid widget?
-                let (missed_words, freq) = missed_words_map.iter().fold(
+                let (missed_words, freq) = missed_words.iter().fold(
                     (
                         Column::new().align_items(Align::End),
                         Column::new().align_items(Align::Start),
                     ),
-                    |(words_col, freq_col), (word, freq)| {
+                    |(expected_col, actual_col), missed_word| {
                         (
-                            words_col.push(Text::new(word)),
-                            freq_col.push(Text::new(format!("{}", freq))),
+                            expected_col.push(Text::new(&missed_word.expected)),
+                            actual_col.push(Text::new(&missed_word.actual)),
                         )
                     },
                 );
