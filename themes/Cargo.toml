@@ -1,0 +1,9 @@
+[package]
+name = "typetest_themes"
+version = "1.0.0"
+authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+iced_core = "0.4"
+iced_style = "0.3"

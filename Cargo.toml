@@ -4,6 +4,9 @@ members = [
     "core",
 
     # Iced GUI
+    "gui",
+    "themes",
+
     "iced",
     "iced_themes",
 ]
