@@ -2,7 +2,7 @@
 name = "typetest"
 description = "An offline keyboard typing test."
 repository = "https://github.com/Ace4896/typetest"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
 license = "MIT"

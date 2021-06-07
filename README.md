@@ -6,7 +6,13 @@ An offline typing test, written using Rust and Iced. Inspired by [typetest.io](h
 
 ## Usage
 
-Clone this repository, and run!
+Install from crates.io:
+
+```
+cargo install typetest
+```
+
+Or alternatively, clone this repository and run from the source code:
 
 ```
 git clone https://github.com/Ace4896/typetest.git
