@@ -8,7 +8,7 @@ pub mod themes;
 /// The Noto Sans Mono font.
 const NOTO_SANS_MONO: Font = Font::External {
     name: "Noto Sans Mono",
-    bytes: include_bytes!("../../fonts/NotoSansMono/NotoSansMono-Regular.ttf"),
+    bytes: include_bytes!("../fonts/NotoSansMono/NotoSansMono-Regular.ttf"),
 };
 
 /// Represents the available themes in the application.
