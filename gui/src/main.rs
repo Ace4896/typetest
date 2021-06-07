@@ -1,4 +1,4 @@
-use iced::Application;
+use iced::{Align, Application, Column, Container, Length, Text};
 use typetest_themes::{ApplicationTheme, Theme};
 use views::{
     results::{ResultsMessage, ResultsState},
@@ -60,10 +60,15 @@ impl Application for App {
         _clipboard: &mut iced::Clipboard,
     ) -> iced::Command<Self::Message> {
         match message {
-            AppMessage::TypingTest(message) => self
-                .typing_test_state
-                .update(message)
-                .map(AppMessage::TypingTest),
+            AppMessage::TypingTest(message) => {
+                if let TypingTestMessage::Action(action) = &message {
+                    self.handle_action(action);
+                }
+
+                self.typing_test_state
+                    .update(message)
+                    .map(AppMessage::TypingTest)
+            }
             AppMessage::Results(message) => {
                 self.results_state.update(message).map(AppMessage::Results)
             }
@@ -80,7 +85,8 @@ impl Application for App {
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
-        match self.current_view {
+        let title = Text::new("TypeTest").size(40);
+        let inner_view: iced::Element<_> = match self.current_view {
             View::TypingTest => self
                 .typing_test_state
                 .view(&self.current_theme)
@@ -93,7 +99,27 @@ impl Application for App {
                 .settings_state
                 .view(&self.current_theme)
                 .map(AppMessage::Settings),
-        }
+        };
+
+        let inner_container = Container::new(inner_view)
+            .padding(10)
+            .height(Length::Fill)
+            .width(Length::Fill)
+            .align_x(Align::Center)
+            .align_y(Align::Center);
+
+        let main_view = Column::new()
+            .align_items(Align::Center)
+            .height(Length::Fill)
+            .push(title)
+            .push(inner_container);
+
+        Container::new(main_view)
+            .padding(20)
+            .height(Length::Fill)
+            .width(Length::Fill)
+            .style(&self.current_theme)
+            .into()
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
@@ -111,8 +137,11 @@ impl App {
     /// Handles any application-wide actions signalled by the views.
     fn handle_action(&mut self, action: &Action) {
         match action {
-            Action::ThemeChanged(theme) => self.current_theme = (*theme).into(),
-            Action::ViewChanged(view) => self.current_view = *view,
+            Action::ChangeTheme(theme) => self.current_theme = (*theme).into(),
+            Action::ChangeView(view) => self.current_view = *view,
+
+            // TODO: Handle this
+            Action::ChangeTimeLength(_) => {}
         }
     }
 }

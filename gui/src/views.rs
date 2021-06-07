@@ -15,6 +15,9 @@ pub enum View {
 /// Represents an application-wide action which can be signalled from a view.
 #[derive(Clone, Debug)]
 pub enum Action {
-    ThemeChanged(Theme),
-    ViewChanged(View),
+    ChangeTheme(Theme),
+    ChangeView(View),
+
+    // TODO: This should be some kind of "typing settings changed" structure, not an individual one
+    ChangeTimeLength(u64),
 }
