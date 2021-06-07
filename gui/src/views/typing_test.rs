@@ -175,7 +175,7 @@ impl TypingTestState {
             }
             TypingTestMessage::ToggleWPM => self.show_wpm = !self.show_wpm,
             TypingTestMessage::ToggleTimer => self.show_timer = !self.show_timer,
-            TypingTestMessage::Redo => self.reset_test_state(false),
+            TypingTestMessage::Redo => self.reset_test_state(true),
             _ => {}
         }
 
