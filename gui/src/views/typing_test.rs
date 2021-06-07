@@ -187,7 +187,8 @@ impl TypingTestState {
         theme: &'a Box<dyn ApplicationTheme>,
     ) -> iced::Element<'a, TypingTestMessage> {
         // Typing Area
-        let blank_line_chars = " ".repeat(MAX_CHARS);
+        // NOTE: +1 to max chars due to tiny gap between displayed words
+        let blank_line_chars = " ".repeat(MAX_CHARS + 1);
         let current_line = line_of_displayed_words(&self.current_line, self.current_pos, theme);
         let next_line = line_of_displayed_words(&self.next_line, self.next_line.len(), theme);
         let line_display = Column::new()
