@@ -265,10 +265,11 @@ impl TypingTestState {
             &mut self.settings_button,
             Text::new("Settings").horizontal_alignment(HorizontalAlignment::Center),
         )
+        .min_width(100)
+        .style(theme)
         .on_press(TypingTestMessage::Action(Action::ChangeView(
             View::Settings,
-        )))
-        .style(theme);
+        )));
 
         Column::new()
             .align_items(Align::Center)
