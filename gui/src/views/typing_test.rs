@@ -304,6 +304,7 @@ impl TypingTestState {
         }
 
         self.status = TypingTestStatus::NotStarted;
+        self.stats.next_test();
         self.current_pos = 0;
         self.current_input.clear();
         self.remaining_seconds = self.test_length_seconds;
