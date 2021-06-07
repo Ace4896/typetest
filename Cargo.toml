@@ -5,8 +5,8 @@ authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-typetest_core = { path = "./core" }
-typetest_themes = { path = "./themes" }
+typetest_core = { version = "1.0", path = "./core" }
+typetest_themes = { version = "1.0", path = "./themes" }
 
 [dependencies.iced]
 version = "0.3"
