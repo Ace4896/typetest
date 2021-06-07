@@ -70,6 +70,10 @@ impl Application for App {
                     .map(AppMessage::TypingTest)
             }
             AppMessage::Results(message) => {
+                if let ResultsMessage::Action(action) = &message {
+                    self.handle_action(action);
+                }
+
                 self.results_state.update(message).map(AppMessage::Results)
             }
             AppMessage::Settings(message) => {
@@ -140,6 +144,21 @@ impl App {
             Action::ChangeTheme(theme) => self.current_theme = (*theme).into(),
             Action::ChangeView(view) => self.current_view = *view,
             Action::ChangeTimeLength(time) => self.typing_test_state.update_time_length(*time),
+
+            Action::DisplayResults(stats) => {
+                self.results_state.update_stats(stats.clone());
+                self.current_view = View::Results;
+            }
+
+            Action::RetryTest => {
+                self.typing_test_state.reset_test_state(false);
+                self.current_view = View::TypingTest;
+            }
+
+            Action::NextTest => {
+                self.typing_test_state.reset_test_state(true);
+                self.current_view = View::TypingTest;
+            }
         }
     }
 }

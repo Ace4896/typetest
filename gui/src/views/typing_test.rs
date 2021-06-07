@@ -117,6 +117,10 @@ impl TypingTestState {
 
                 if self.remaining_seconds == 0 {
                     self.status = TypingTestStatus::Finished;
+                    let stats = self.stats.clone();
+                    return Command::perform(async move { stats }, |stats| {
+                        TypingTestMessage::Action(Action::DisplayResults(stats))
+                    });
                 }
             }
             // TODO: Replace this logic with custom text input control that intercepts spacebar presses
@@ -292,7 +296,7 @@ impl TypingTestState {
         self.reset_test_state(true);
     }
 
-    fn reset_test_state(&mut self, new_test: bool) {
+    pub fn reset_test_state(&mut self, new_test: bool) {
         if new_test {
             self.word_gen.next_test();
         } else {

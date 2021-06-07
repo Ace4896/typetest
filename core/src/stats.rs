@@ -4,6 +4,7 @@ use std::{
 };
 
 /// Stores statistics for a typing test.
+#[derive(Clone, Debug)]
 pub struct TestStats {
     test_start: Instant,
     checkpoints: Vec<TestCheckpoint>,
@@ -18,6 +19,7 @@ pub struct TestStats {
 /// Represents a statistics checkpoint in a typing test.
 ///
 /// Eventually, this will be used for graphing WPM.
+#[derive(Clone, Copy, Debug)]
 pub struct TestCheckpoint {
     pub elapsed: Duration,
 
@@ -28,7 +30,7 @@ pub struct TestCheckpoint {
 }
 
 /// Represents a missed word in a typing test.
-#[derive(PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct MissedWord {
     pub expected: String,
     pub actual: String,

@@ -1,3 +1,4 @@
+use typetest_core::stats::TestStats;
 use typetest_themes::Theme;
 
 pub mod results;
@@ -20,4 +21,8 @@ pub enum Action {
 
     // TODO: This should be some kind of "typing settings changed" structure, not an individual one
     ChangeTimeLength(u64),
+
+    DisplayResults(TestStats),
+    RetryTest,
+    NextTest,
 }
