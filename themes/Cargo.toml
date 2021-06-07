@@ -1,8 +1,10 @@
 [package]
 name = "typetest_themes"
+description = "Crate containing themes for TypeTest."
 version = "1.0.0"
 authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
+license = "MIT"
 
 [dependencies]
 iced_core = "0.4"

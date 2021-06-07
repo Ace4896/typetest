@@ -1,8 +1,10 @@
 [package]
 name = "typetest_core"
+description = "Crate providing the core backend for TypeTest."
 version = "1.0.0"
 authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
 edition = "2018"
+license = "MIT"
 
 [dependencies]
 rand = { version = "0.8", features = ["small_rng"] }
