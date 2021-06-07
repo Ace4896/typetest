@@ -281,7 +281,7 @@ impl TypingTestState {
     }
 
     pub fn subscription(&self) -> iced::Subscription<TypingTestMessage> {
-        const TICK_DURATION: Duration = Duration::from_secs(1);
+        const TICK_DURATION: Duration = Duration::from_millis(100);
 
         match self.status {
             TypingTestStatus::NotStarted | TypingTestStatus::Finished => iced::Subscription::none(),
