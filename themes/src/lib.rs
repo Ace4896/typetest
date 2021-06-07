@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use iced_core::Font;
+use iced_core::{Color, Font};
 use iced_style::{button, container, pick_list, radio, scrollable, text_input};
 
 pub mod themes;
@@ -43,6 +43,13 @@ impl Display for Theme {
     }
 }
 
+/// Represents the different colours for each displayed word.
+pub struct WordPalette {
+    pub default: Color,
+    pub correct: Color,
+    pub incorrect: Color,
+}
+
 /// Trait that needs to be implemented for any themes in the application.
 /// Once implemented, the theme can be used for any widgets used by the GUI.
 pub trait ApplicationTheme {
@@ -53,6 +60,10 @@ pub trait ApplicationTheme {
     fn radio(&self) -> Box<dyn radio::StyleSheet>;
     fn scrollable(&self) -> Box<dyn scrollable::StyleSheet>;
     fn text_input(&self) -> Box<dyn text_input::StyleSheet>;
+
+    // Custom Widgets
+    fn word_palette(&self) -> WordPalette;
+    fn word_background(&self) -> Box<dyn container::StyleSheet>;
 }
 
 impl From<Theme> for Box<dyn ApplicationTheme> {

@@ -1,5 +1,6 @@
-use crate::ApplicationTheme;
+use crate::{ApplicationTheme, WordPalette};
 
+use iced_core::Background;
 use iced_style::{
     button, checkbox, container, menu, pick_list, progress_bar, radio, rule, scrollable, slider,
     text_input, Color,
@@ -35,6 +36,12 @@ const HOVERED: Color = Color::from_rgb(
     0xC4 as f32 / 255.0,
 );
 
+const WORD_PALETTE: WordPalette = WordPalette {
+    default: Color::WHITE,
+    correct: Color::from_rgb(0.0, 0.75, 0.0),
+    incorrect: Color::from_rgb(1.0, 0.0, 0.0),
+};
+
 /// The dark theme from iced's [styling example].
 ///
 /// [styling example]: https://github.com/hecrj/iced/tree/master/examples/styling
@@ -63,6 +70,14 @@ impl ApplicationTheme for DefaultDark {
 
     fn text_input(&self) -> Box<dyn text_input::StyleSheet> {
         TextInput.into()
+    }
+
+    fn word_palette(&self) -> WordPalette {
+        WORD_PALETTE
+    }
+
+    fn word_background(&self) -> Box<dyn container::StyleSheet> {
+        WordBackground.into()
     }
 }
 
@@ -336,6 +351,19 @@ impl rule::StyleSheet for Rule {
             width: 2,
             radius: 1.0,
             fill_mode: rule::FillMode::Padded(15),
+        }
+    }
+}
+
+pub struct WordBackground;
+impl container::StyleSheet for WordBackground {
+    fn style(&self) -> container::Style {
+        container::Style {
+            background: Some(Background::Color(Color::from_rgba(0.0, 0.0, 0.0, 0.75))),
+            border_radius: 2.0,
+            border_width: 0.0,
+            border_color: Color::TRANSPARENT,
+            text_color: None,
         }
     }
 }
