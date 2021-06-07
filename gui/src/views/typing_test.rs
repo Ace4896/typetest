@@ -15,7 +15,6 @@ use super::{Action, View};
 const MAX_CHARS: usize = 80;
 
 /// Represents the state for the typing test view.
-#[allow(missing_debug_implementations)]
 pub struct TypingTestState {
     word_gen: Box<dyn WordGenerator>,
     stats: TestStats,

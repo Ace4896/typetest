@@ -5,10 +5,7 @@ use typetest_themes::ApplicationTheme;
 use super::Action;
 
 /// Represents the state for the results view.
-#[derive(Debug)]
 pub struct ResultsState {
-    // TODO: Instead of storing test length, store the settings used
-    test_length_seconds: u64,
     stats: TestStats,
 
     show_missed_words: bool,
@@ -29,7 +26,6 @@ pub enum ResultsMessage {
 impl ResultsState {
     pub fn new() -> Self {
         Self {
-            test_length_seconds: 60,
             stats: TestStats::new(),
 
             show_missed_words: false,

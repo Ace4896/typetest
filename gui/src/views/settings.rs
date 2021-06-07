@@ -14,7 +14,6 @@ use self::{
 use super::{Action, View};
 
 /// Represents the state for the settings view.
-#[derive(Debug)]
 pub struct SettingsState {
     global_settings: GlobalSettingsState,
     random_generator: RandomGeneratorState,
