@@ -139,9 +139,7 @@ impl App {
         match action {
             Action::ChangeTheme(theme) => self.current_theme = (*theme).into(),
             Action::ChangeView(view) => self.current_view = *view,
-
-            // TODO: Handle this
-            Action::ChangeTimeLength(_) => {}
+            Action::ChangeTimeLength(time) => self.typing_test_state.update_time_length(*time),
         }
     }
 }
