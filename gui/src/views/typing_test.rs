@@ -10,6 +10,8 @@ use typetest_core::{
 };
 use typetest_themes::{ApplicationTheme, Theme};
 
+use crate::widgets::word_submission::SubmissionWrapper;
+
 use super::{Action, View};
 
 const MAX_CHARS: usize = 80;
@@ -45,6 +47,8 @@ pub struct TypingTestState {
 pub enum TypingTestMessage {
     TimerTick(Instant),
     InputChanged(String),
+    WordSubmitted,
+
     ToggleWPM,
     ToggleTimer,
     Redo,
@@ -122,8 +126,7 @@ impl TypingTestState {
                     });
                 }
             }
-            // TODO: Replace this logic with custom text input control that intercepts spacebar presses
-            TypingTestMessage::InputChanged(mut s) => {
+            TypingTestMessage::InputChanged(s) => {
                 if self.status == TypingTestStatus::Finished {
                     return Command::none();
                 }
@@ -135,46 +138,40 @@ impl TypingTestState {
                     self.test_start = Instant::now();
                 }
 
-                // If it ends in a space, prepare to submit the word
-                if s.ends_with(' ') {
-                    let trimmed = s.trim();
-                    if !trimmed.is_empty() {
-                        let is_correct = self
-                            .stats
-                            .submit_word(&self.current_line[self.current_pos].word, trimmed);
-
-                        self.current_line[self.current_pos].status = if is_correct {
-                            WordStatus::Correct
-                        } else {
-                            WordStatus::Incorrect
-                        };
-
-                        if self.current_pos >= self.current_line.len() - 1 {
-                            self.current_pos = 0;
-                            std::mem::swap(&mut self.current_line, &mut self.next_line);
-                            self.word_gen.fill_line(&mut self.next_line, MAX_CHARS);
-
-                            // If we're using a finite word generator and the next line is empty, test is done
-                            if self.next_line.is_empty() {
-                                self.status = TypingTestStatus::Finished;
-                            }
-                        } else {
-                            self.current_pos += 1;
-                        }
-                    }
-
-                    s.clear();
-                } else {
-                    // If it does not end in a space, just check if the word is correct so far
-                    self.current_line[self.current_pos].status =
-                        if self.current_line[self.current_pos].word.starts_with(&s) {
-                            WordStatus::NotTyped
-                        } else {
-                            WordStatus::Incorrect
-                        };
-                }
+                // Update the status for the current word
+                self.current_line[self.current_pos].status =
+                    if self.current_line[self.current_pos].word.starts_with(&s) {
+                        WordStatus::NotTyped
+                    } else {
+                        WordStatus::Incorrect
+                    };
 
                 self.current_input = s;
+            }
+            TypingTestMessage::WordSubmitted => {
+                if self.status != TypingTestStatus::Started || self.current_input.is_empty() {
+                    return Command::none();
+                }
+
+                let is_correct = self.stats.submit_word(
+                    &self.current_line[self.current_pos].word,
+                    &self.current_input,
+                );
+
+                self.current_input.clear();
+                self.current_line[self.current_pos].status = if is_correct {
+                    WordStatus::Correct
+                } else {
+                    WordStatus::Incorrect
+                };
+
+                if self.current_pos >= self.current_line.len() - 1 {
+                    self.current_pos = 0;
+                    std::mem::swap(&mut self.current_line, &mut self.next_line);
+                    self.word_gen.fill_line(&mut self.next_line, MAX_CHARS);
+                } else {
+                    self.current_pos += 1;
+                }
             }
             TypingTestMessage::ToggleWPM => self.show_wpm = !self.show_wpm,
             TypingTestMessage::ToggleTimer => self.show_timer = !self.show_timer,
@@ -207,6 +204,9 @@ impl TypingTestState {
         )
         .padding(5)
         .style(theme);
+
+        let submission_wrapper =
+            SubmissionWrapper::new(input_box, TypingTestMessage::WordSubmitted);
 
         let wpm_text = if self.show_wpm {
             let wpm = self
@@ -254,7 +254,7 @@ impl TypingTestState {
             .align_items(Align::Center)
             .max_width(600)
             .spacing(10)
-            .push(input_box)
+            .push(submission_wrapper)
             .push(wpm_button)
             .push(timer_button)
             .push(redo_button);

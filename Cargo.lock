@@ -2068,6 +2068,7 @@ name = "typetest"
 version = "1.0.0"
 dependencies = [
  "iced",
+ "iced_native",
  "typetest_core",
  "typetest_themes",
 ]

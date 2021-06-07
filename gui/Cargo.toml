@@ -12,3 +12,6 @@ typetest_themes = { path = "../themes" }
 version = "0.3"
 default-features = false
 features = ["glow", "smol"]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+iced_native = "0.4"

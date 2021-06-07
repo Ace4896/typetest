@@ -8,6 +8,7 @@ use views::{
 };
 
 mod views;
+mod widgets;
 
 /// Top-level Iced application.
 pub struct App {
