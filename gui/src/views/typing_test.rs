@@ -188,12 +188,11 @@ impl TypingTestState {
     ) -> iced::Element<'a, TypingTestMessage> {
         // Typing Area
         // NOTE: +1 to max chars due to tiny gap between displayed words
-        let blank_line_chars = " ".repeat(MAX_CHARS + 1);
         let current_line = line_of_displayed_words(&self.current_line, self.current_pos, theme);
         let next_line = line_of_displayed_words(&self.next_line, self.next_line.len(), theme);
         let line_display = Column::new()
             .spacing(5)
-            .push(Text::new(&blank_line_chars).font(Theme::monospace_font()))
+            .push(blank_line())
             .push(current_line)
             .push(next_line);
 
@@ -273,7 +272,7 @@ impl TypingTestState {
             .push(line_display)
             .push(typing_area)
             .push(settings_button)
-            .push(Text::new(&blank_line_chars).font(Theme::monospace_font()))
+            .push(blank_line())
             .into()
     }
 
@@ -316,6 +315,13 @@ fn format_time_mm_ss(seconds: u64) -> String {
     format!("{:0>2}:{:0>2}", seconds / 60, seconds % 60)
 }
 
+#[inline]
+fn blank_line() -> Text {
+    Text::new(" ".repeat(MAX_CHARS + 1))
+        .font(Theme::monospace_font())
+        .size(22)
+}
+
 /// Converts a [DisplayedWord] to an [iced::Text].
 fn displayed_word(word: &DisplayedWord, theme: &Box<dyn ApplicationTheme>) -> Text {
     let theme = theme.word_palette();
@@ -328,6 +334,7 @@ fn displayed_word(word: &DisplayedWord, theme: &Box<dyn ApplicationTheme>) -> Te
     Text::new(&word.word)
         .color(color)
         .font(Theme::monospace_font())
+        .size(22)
 }
 
 /// Converts a list of [DisplayedWord]s into a line of [iced::Text]s.
