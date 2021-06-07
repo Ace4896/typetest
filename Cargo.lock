@@ -2081,23 +2081,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "typetest_iced"
-version = "1.0.0"
-dependencies = [
- "iced",
- "typetest_core",
- "typetest_iced_themes",
-]
-
-[[package]]
-name = "typetest_iced_themes"
-version = "0.1.0"
-dependencies = [
- "iced_core",
- "iced_style",
-]
-
-[[package]]
 name = "typetest_themes"
 version = "1.0.0"
 dependencies = [

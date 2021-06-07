@@ -1,9 +1,0 @@
-[package]
-name = "typetest_iced_themes"
-version = "0.1.0"
-authors = ["Jon Pacheco <jon.pacheco@tutanota.com>"]
-edition = "2018"
-
-[dependencies]
-iced_core = "0.4"
-iced_style = "0.3"
