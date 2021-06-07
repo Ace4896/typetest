@@ -250,6 +250,7 @@ impl TypingTestState {
 
         let typing_area = Row::new()
             .align_items(Align::Center)
+            .max_width(600)
             .spacing(10)
             .push(input_box)
             .push(wpm_button)
