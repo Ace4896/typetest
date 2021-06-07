@@ -289,6 +289,7 @@ impl TypingTestState {
 
     pub fn update_time_length(&mut self, time: u64) {
         self.test_length_seconds = time;
+        self.reset_test_state(true);
     }
 
     fn reset_test_state(&mut self, new_test: bool) {
