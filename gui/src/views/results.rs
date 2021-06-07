@@ -1,3 +1,5 @@
+use typetest_themes::ApplicationTheme;
+
 /// Represents the state for the results view.
 #[derive(Debug)]
 pub struct ResultsState {}
@@ -15,7 +17,7 @@ impl ResultsState {
         iced::Command::none()
     }
 
-    pub fn view(&mut self) -> iced::Element<ResultsMessage> {
+    pub fn view(&mut self, _theme: &Box<dyn ApplicationTheme>) -> iced::Element<ResultsMessage> {
         todo!()
     }
 }

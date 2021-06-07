@@ -1,9 +1,10 @@
 use iced::Application;
+use typetest_themes::{ApplicationTheme, Theme};
 use views::{
     results::{ResultsMessage, ResultsState},
     settings::{SettingsMessage, SettingsState},
     typing_test::{TypingTestMessage, TypingTestState},
-    View,
+    Action, View,
 };
 
 mod views;
@@ -11,6 +12,7 @@ mod views;
 /// Top-level Iced application.
 pub struct App {
     current_view: View,
+    current_theme: Box<dyn ApplicationTheme>,
 
     typing_test_state: TypingTestState,
     results_state: ResultsState,
@@ -38,6 +40,7 @@ impl Application for App {
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let app = App {
             current_view: View::TypingTest,
+            current_theme: Theme::DefaultDark.into(),
 
             typing_test_state: TypingTestState::new(),
             results_state: ResultsState::new(),
@@ -64,18 +67,52 @@ impl Application for App {
             AppMessage::Results(message) => {
                 self.results_state.update(message).map(AppMessage::Results)
             }
-            AppMessage::Settings(message) => self
-                .settings_state
-                .update(message)
-                .map(AppMessage::Settings),
+            AppMessage::Settings(message) => {
+                if let SettingsMessage::Action(action) = &message {
+                    self.handle_action(action);
+                }
+
+                self.settings_state
+                    .update(message)
+                    .map(AppMessage::Settings)
+            }
         }
     }
 
     fn view(&mut self) -> iced::Element<'_, Self::Message> {
-        todo!()
+        match self.current_view {
+            View::TypingTest => self
+                .typing_test_state
+                .view(&self.current_theme)
+                .map(AppMessage::TypingTest),
+            View::Results => self
+                .results_state
+                .view(&self.current_theme)
+                .map(AppMessage::Results),
+            View::Settings => self
+                .settings_state
+                .view(&self.current_theme)
+                .map(AppMessage::Settings),
+        }
     }
 
     fn subscription(&self) -> iced::Subscription<Self::Message> {
-        todo!()
+        if let View::TypingTest = self.current_view {
+            self.typing_test_state
+                .subscription()
+                .map(AppMessage::TypingTest)
+        } else {
+            iced::Subscription::none()
+        }
+    }
+}
+
+impl App {
+    /// Handles any application-wide actions signalled by the views.
+    fn handle_action(&mut self, action: &Action) {
+        match action {
+            Action::ThemeChanged(theme) => self.current_theme = (*theme).into(),
+            Action::ViewChanged(view) => self.current_view = *view,
+        }
     }
 }
