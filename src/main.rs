@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use iced::{Align, Application, Column, Container, Length, Text};
 use typetest_themes::{ApplicationTheme, Theme};
 use views::{
