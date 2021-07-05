@@ -30,4 +30,4 @@ cargo run --release
 
 ### Shortcuts
 
-- Redo current test: `Ctrl/Cmd + R` or `F5`
+- Redo Current Test: `Ctrl/Cmd + R` or `F5`
