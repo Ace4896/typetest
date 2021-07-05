@@ -2,15 +2,20 @@ use iced::Point;
 use iced_native::{
     event, keyboard, text_input, Clipboard, Element, Event, Layout, TextInput, Widget,
 };
+use keyboard::{KeyCode, Modifiers};
 
-/// Native-only wrapper for word submission.
-/// It intercepts spacebar inputs and sends a message indicating that the current word is being submitted.
+/// Native-only wrapper for word submission. It provides the following functionality:
+/// - Intercept spacebar inputs, sending a message indicating that the current word is being submitted.
+/// - Redo the test when one of the following hotkeys is used:
+///   - Ctrl + R (or Cmd + R on Mac OS)
+///   - F5
 pub struct SubmissionWrapper<'a, Message, Renderer>
 where
     Renderer: text_input::Renderer,
 {
     text_input: TextInput<'a, Message, Renderer>,
     on_submit_word: Message,
+    on_redo: Message,
 }
 
 impl<'a, Message, Renderer> SubmissionWrapper<'a, Message, Renderer>
@@ -18,10 +23,15 @@ where
     Renderer: text_input::Renderer,
 {
     /// Creates a new [`SubmissionWrapper`].
-    pub fn new(text_input: TextInput<'a, Message, Renderer>, on_submit_word: Message) -> Self {
+    pub fn new(
+        text_input: TextInput<'a, Message, Renderer>,
+        on_submit_word: Message,
+        on_redo: Message,
+    ) -> Self {
         Self {
             text_input,
             on_submit_word,
+            on_redo,
         }
     }
 }
@@ -90,6 +100,19 @@ where
         messages: &mut Vec<Message>,
     ) -> event::Status {
         match event {
+            Event::Keyboard(
+                keyboard::Event::KeyPressed {
+                    key_code: KeyCode::R,
+                    modifiers: Modifiers { control: true, .. },
+                }
+                | keyboard::Event::KeyPressed {
+                    key_code: KeyCode::F5,
+                    ..
+                },
+            ) => {
+                messages.push(self.on_redo.clone());
+                event::Status::Captured
+            }
             Event::Keyboard(keyboard::Event::CharacterReceived(' ')) => {
                 messages.push(self.on_submit_word.clone());
                 event::Status::Captured

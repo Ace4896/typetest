@@ -4,7 +4,15 @@ An offline typing test, written using Rust and Iced. Inspired by [typetest.io](h
 
 ![Demo](docs/demo.gif)
 
+## Requirements
+
+On all OSes, Rust 1.53 is required.
+
+On Linux, `iced` has additional dependencies that need to be present when installing from crates.io or from source - see [this GitHub issue](https://github.com/hecrj/iced/issues/256) for more information.
+
 ## Usage
+
+### Installation
 
 Install from crates.io:
 
@@ -20,4 +28,6 @@ cd typetest
 cargo run --release
 ```
 
-**NOTE**: Linux users may want to look [here](https://github.com/hecrj/iced/issues/256) if there are linking errors due to missing dependencies.
+### Shortcuts
+
+- Redo current test: `Ctrl/Cmd + R` or `F5`

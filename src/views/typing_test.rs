@@ -205,8 +205,11 @@ impl TypingTestState {
         .padding(5)
         .style(theme);
 
-        let submission_wrapper =
-            SubmissionWrapper::new(input_box, TypingTestMessage::WordSubmitted);
+        let submission_wrapper = SubmissionWrapper::new(
+            input_box,
+            TypingTestMessage::WordSubmitted,
+            TypingTestMessage::Redo,
+        );
 
         let wpm_text = if self.show_wpm {
             let wpm = self
