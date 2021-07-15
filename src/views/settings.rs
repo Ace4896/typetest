@@ -6,6 +6,8 @@ use iced::{
 };
 use typetest_themes::ApplicationTheme;
 
+use crate::config::Config;
+
 use self::{
     global::{GlobalSettingsMessage, GlobalSettingsState},
     random_generator::{RandomGeneratorMessage, RandomGeneratorState},
@@ -32,10 +34,10 @@ pub enum SettingsMessage {
 }
 
 impl SettingsState {
-    pub fn new() -> Self {
+    pub fn new(config: &Config) -> Self {
         Self {
-            global_settings: GlobalSettingsState::new(),
-            random_generator: RandomGeneratorState::new(),
+            global_settings: GlobalSettingsState::new(&config.global_settings),
+            random_generator: RandomGeneratorState::new(&config.random_generator_settings),
 
             scroll: scrollable::State::new(),
             back_button: button::State::new(),

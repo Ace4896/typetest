@@ -1,7 +1,8 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
+use config::Config;
 use iced::{Align, Application, Column, Container, Length, Text};
-use typetest_themes::{ApplicationTheme, Theme};
+use typetest_themes::ApplicationTheme;
 use views::{
     results::{ResultsMessage, ResultsState},
     settings::{SettingsMessage, SettingsState},
@@ -9,6 +10,7 @@ use views::{
     Action, View,
 };
 
+mod config;
 mod views;
 mod widgets;
 
@@ -31,23 +33,25 @@ pub enum AppMessage {
     Settings(SettingsMessage),
 }
 
-fn main() -> Result<(), iced::Error> {
-    App::run(iced::Settings::default())
+fn main() -> anyhow::Result<()> {
+    let config = config::load_config()?;
+    App::run(iced::Settings::with_flags(config))?;
+    Ok(())
 }
 
 impl Application for App {
     type Executor = iced::executor::Default;
     type Message = AppMessage;
-    type Flags = ();
+    type Flags = Config;
 
-    fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
+    fn new(config: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let app = App {
             current_view: View::TypingTest,
-            current_theme: Theme::DefaultDark.into(),
+            current_theme: config.global_settings.theme.into(),
 
-            typing_test_state: TypingTestState::new(),
+            typing_test_state: TypingTestState::new(&config),
             results_state: ResultsState::new(),
-            settings_state: SettingsState::new(),
+            settings_state: SettingsState::new(&config),
         };
 
         (app, iced::Command::none())

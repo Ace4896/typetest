@@ -10,7 +10,7 @@ use typetest_core::{
 };
 use typetest_themes::{ApplicationTheme, Theme};
 
-use crate::widgets::word_submission::SubmissionWrapper;
+use crate::{config::Config, widgets::word_submission::SubmissionWrapper};
 
 use super::{Action, View};
 
@@ -65,7 +65,7 @@ pub enum TypingTestStatus {
 }
 
 impl TypingTestState {
-    pub fn new() -> Self {
+    pub fn new(config: &Config) -> Self {
         let mut word_gen = Box::new(InfiniteWordGenerator::default());
         let mut current_line = Vec::new();
         let mut next_line = Vec::new();
@@ -86,8 +86,8 @@ impl TypingTestState {
             current_input: String::new(),
 
             test_start: Instant::now(),
-            test_length_seconds: 60,
-            remaining_seconds: 60,
+            test_length_seconds: config.random_generator_settings.time_length_seconds,
+            remaining_seconds: config.random_generator_settings.time_length_seconds,
 
             show_wpm: true,
             show_timer: true,

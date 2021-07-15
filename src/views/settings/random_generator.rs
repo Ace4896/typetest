@@ -1,7 +1,7 @@
 use iced::{pick_list, Align, Column, Command, Element, PickList, Row, Text};
 use typetest_themes::ApplicationTheme;
 
-use crate::views::Action;
+use crate::{config::RandomGeneratorSettings, views::Action};
 
 use super::SettingsMessage;
 
@@ -30,9 +30,9 @@ pub struct RandomGeneratorState {
 }
 
 impl RandomGeneratorState {
-    pub fn new() -> RandomGeneratorState {
+    pub fn new(settings: &RandomGeneratorSettings) -> RandomGeneratorState {
         RandomGeneratorState {
-            time_length_seconds: 60,
+            time_length_seconds: settings.time_length_seconds,
             time_length_pick_list: pick_list::State::default(),
         }
     }

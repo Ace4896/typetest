@@ -1,7 +1,7 @@
 use iced::{pick_list, Align, Column, Command, Element, PickList, Row, Text};
 use typetest_themes::{ApplicationTheme, Theme};
 
-use crate::views::Action;
+use crate::{config::GlobalSettings, views::Action};
 
 use super::SettingsMessage;
 
@@ -30,9 +30,9 @@ impl From<GlobalSettingsMessage> for SettingsMessage {
 }
 
 impl GlobalSettingsState {
-    pub fn new() -> GlobalSettingsState {
+    pub fn new(settings: &GlobalSettings) -> GlobalSettingsState {
         GlobalSettingsState {
-            current_theme: Theme::default(),
+            current_theme: settings.theme,
             theme_pick_list: pick_list::State::default(),
         }
     }

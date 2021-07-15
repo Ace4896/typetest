@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use iced_core::{Color, Font};
 use iced_style::{button, container, pick_list, radio, scrollable, text_input};
+use serde::Deserialize;
 
 pub mod themes;
 
@@ -12,7 +13,7 @@ const NOTO_SANS_MONO: Font = Font::External {
 };
 
 /// Represents the available themes in the application.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
 pub enum Theme {
     DefaultDark,
     DefaultLight,

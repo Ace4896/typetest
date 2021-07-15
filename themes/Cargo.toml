@@ -9,3 +9,4 @@ license = "MIT"
 [dependencies]
 iced_core = "0.4"
 iced_style = "0.3"
+serde = { version = "1.0", features = ["derive"] }
