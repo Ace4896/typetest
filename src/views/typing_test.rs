@@ -86,8 +86,8 @@ impl TypingTestState {
             current_input: String::new(),
 
             test_start: Instant::now(),
-            test_length_seconds: config.random_generator_settings.time_length_seconds,
-            remaining_seconds: config.random_generator_settings.time_length_seconds,
+            test_length_seconds: config.random_generator.time_length_seconds,
+            remaining_seconds: config.random_generator.time_length_seconds,
 
             show_wpm: true,
             show_timer: true,

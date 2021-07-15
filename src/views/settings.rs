@@ -36,8 +36,8 @@ pub enum SettingsMessage {
 impl SettingsState {
     pub fn new(config: &Config) -> Self {
         Self {
-            global_settings: GlobalSettingsState::new(&config.global_settings),
-            random_generator: RandomGeneratorState::new(&config.random_generator_settings),
+            global_settings: GlobalSettingsState::new(&config.global),
+            random_generator: RandomGeneratorState::new(&config.random_generator),
 
             scroll: scrollable::State::new(),
             back_button: button::State::new(),

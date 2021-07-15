@@ -1,7 +1,7 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
-use config::Config;
 use iced::{Align, Application, Column, Container, Length, Text};
+use log::{error, LevelFilter};
 use typetest_themes::ApplicationTheme;
 use views::{
     results::{ResultsMessage, ResultsState},
@@ -34,20 +34,26 @@ pub enum AppMessage {
 }
 
 fn main() -> anyhow::Result<()> {
-    let config = config::load_config()?;
-    App::run(iced::Settings::with_flags(config))?;
+    #[cfg(not(target_arch = "wasm32"))]
+    env_logger::builder().filter_level(LevelFilter::Info).init();
+
+    match config::load_config() {
+        Ok(app_config) => App::run(iced::Settings::with_flags(app_config))?,
+        Err(e) => error!("Could not start TypeTest! {}", e),
+    }
+
     Ok(())
 }
 
 impl Application for App {
     type Executor = iced::executor::Default;
     type Message = AppMessage;
-    type Flags = Config;
+    type Flags = crate::config::Config;
 
     fn new(config: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let app = App {
             current_view: View::TypingTest,
-            current_theme: config.global_settings.theme.into(),
+            current_theme: config.global.theme.into(),
 
             typing_test_state: TypingTestState::new(&config),
             results_state: ResultsState::new(),
