@@ -28,6 +28,7 @@ impl Default for RandomGeneratorSettings {
 
 // TODO: Points of failure:
 // - Missing configuration options
+// TODO: Saving of config
 
 /// Loads the configuration file on native platforms.
 #[cfg(not(target_arch = "wasm32"))]
