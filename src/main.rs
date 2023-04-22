@@ -1,6 +1,7 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
 use iced::{Application, Command, Element, widget};
+use typetest_themes::TypingTestStyleSheet;
 
 /// Top-level Iced application.
 pub struct App {
@@ -41,6 +42,26 @@ impl Application for App {
     }
 
     fn view(&self) -> Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
-        widget::text("TypeTest").into()
+        let theme = self.theme();
+
+        iced::widget::column!(
+            widget::text("default")
+                .font(theme.monospace_font())
+                .style(theme.text_colour(typetest_core::word_generators::WordStatus::NotTyped)),
+
+            widget::text("correct")
+                .font(theme.monospace_font())
+                .style(theme.text_colour(typetest_core::word_generators::WordStatus::Correct)),
+
+            widget::text("incorrect")
+                .font(theme.monospace_font())
+                .style(theme.text_colour(typetest_core::word_generators::WordStatus::Incorrect)),
+
+            // TODO: Not sure what the parameter needs to be? There's too many generics...
+            // widget::container(
+            //     widget::text("default with background")
+            // ).style(iced::theme::Container::Box)
+        )
+        .into()
     }
 }

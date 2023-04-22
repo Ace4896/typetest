@@ -2106,6 +2106,7 @@ version = "1.1.0"
 dependencies = [
  "iced",
  "typetest_core",
+ "typetest_themes",
  "typetest_widgets",
 ]
 
@@ -2114,6 +2115,15 @@ name = "typetest_core"
 version = "1.1.0"
 dependencies = [
  "rand",
+]
+
+[[package]]
+name = "typetest_themes"
+version = "1.1.0"
+dependencies = [
+ "iced_core",
+ "iced_style",
+ "typetest_core",
 ]
 
 [[package]]

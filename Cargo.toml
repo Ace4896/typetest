@@ -8,7 +8,8 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-typetest_core = { version = "1.0", path = "./core" }
+typetest_core = { version = "1.1", path = "./core" }
+typetest_themes = { version = "1.1", path = "./themes" }
 typetest_widgets = { version = "1.1", path = "./widgets" }
 
 iced = "0.9"

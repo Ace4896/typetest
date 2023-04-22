@@ -1,6 +1,7 @@
 pub mod random;
 
 /// Represents the different statuses a word could be in during a typing test.
+#[derive(Clone, Copy)]
 pub enum WordStatus {
     NotTyped,
     Correct,
