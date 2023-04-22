@@ -8,14 +8,14 @@ pub enum WordStatus {
 }
 
 /// Represents a word that is intended to be displayed during a typing test.
-pub struct DisplayedWord {
+pub struct TestWord {
     pub word: String,
     pub status: WordStatus,
 }
 
-impl DisplayedWord {
+impl TestWord {
     pub fn new(word: impl Into<String>) -> Self {
-        DisplayedWord {
+        TestWord {
             word: word.into(),
             status: WordStatus::NotTyped,
         }
@@ -28,7 +28,7 @@ pub trait WordGenerator {
     ///
     /// Requires `&mut self` since some word generators may need to update their state,
     /// e.g. a word generator that replicates a passage of text.
-    fn fill_line(&mut self, line: &mut Vec<DisplayedWord>, max_chars: usize);
+    fn fill_line(&mut self, line: &mut Vec<TestWord>, max_chars: usize);
 
     /// Prepares this word generator for a redo of the same test.
     fn redo(&mut self);

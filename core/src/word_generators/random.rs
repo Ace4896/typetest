@@ -5,7 +5,7 @@ use rand::{
 
 use crate::word_pools::default_english::DEFAULT_ENGLISH;
 
-use super::{DisplayedWord, WordGenerator};
+use super::{TestWord, WordGenerator};
 
 /// Implementation of an infinite word generator using random words from a pool.
 pub struct InfiniteWordGenerator {
@@ -34,7 +34,7 @@ impl Default for InfiniteWordGenerator {
 }
 
 impl WordGenerator for InfiniteWordGenerator {
-    fn fill_line(&mut self, line: &mut Vec<super::DisplayedWord>, max_chars: usize) {
+    fn fill_line(&mut self, line: &mut Vec<super::TestWord>, max_chars: usize) {
         line.clear();
 
         let mut chars = 0;
@@ -45,7 +45,7 @@ impl WordGenerator for InfiniteWordGenerator {
         chars += word.len();
 
         while chars < max_chars {
-            line.push(DisplayedWord::new(word));
+            line.push(TestWord::new(word));
 
             // NOTE: +1 to length due to spacebar
             word = self
