@@ -1,16 +1,16 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
-use iced::{Application, Command, Element, widget};
-use typetest_themes::TypingTestStyleSheet;
+use iced::{widget, Application, Command, Element};
+
+use typetest_core::word_generators::WordStatus;
+use typetest_themes::{test_word_colour, WordHighlight, MONOSPACE_FONT};
 
 /// Top-level Iced application.
-pub struct App {
-}
+pub struct App {}
 
 /// Top-level message for the application.
 #[derive(Clone, Debug)]
-pub enum AppMessage {
-}
+pub enum AppMessage {}
 
 fn main() -> Result<(), iced::Error> {
     App::run(iced::Settings::default())
@@ -23,10 +23,7 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        (
-            Self {},
-            Command::none()
-        )
+        (Self {}, Command::none())
     }
 
     fn title(&self) -> String {
@@ -45,22 +42,22 @@ impl Application for App {
         let theme = self.theme();
 
         iced::widget::column!(
+            // TODO: While this works, it'd be nice to be able to pass in something that implements Text::StyleSheet
             widget::text("default")
-                .font(theme.monospace_font())
-                .style(theme.text_colour(typetest_core::word_generators::WordStatus::NotTyped)),
-
+                .font(MONOSPACE_FONT)
+                .style(test_word_colour(&theme, &WordStatus::NotTyped)),
             widget::text("correct")
-                .font(theme.monospace_font())
-                .style(theme.text_colour(typetest_core::word_generators::WordStatus::Correct)),
-
+                .font(MONOSPACE_FONT)
+                .style(test_word_colour(&theme, &WordStatus::Correct)),
             widget::text("incorrect")
-                .font(theme.monospace_font())
-                .style(theme.text_colour(typetest_core::word_generators::WordStatus::Incorrect)),
-
-            // TODO: Not sure what the parameter needs to be? There's too many generics...
-            // widget::container(
-            //     widget::text("default with background")
-            // ).style(iced::theme::Container::Box)
+                .font(MONOSPACE_FONT)
+                .style(test_word_colour(&theme, &WordStatus::Incorrect)),
+            widget::container(
+                widget::text("default with background")
+                    .font(MONOSPACE_FONT)
+                    .style(test_word_colour(&theme, &WordStatus::NotTyped))
+            )
+            .style(WordHighlight)
         )
         .into()
     }

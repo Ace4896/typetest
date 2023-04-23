@@ -2123,6 +2123,7 @@ version = "1.1.0"
 dependencies = [
  "iced_core",
  "iced_style",
+ "palette",
  "typetest_core",
 ]
 
