@@ -42,20 +42,25 @@ impl Application for App {
         let theme = self.theme();
 
         iced::widget::column!(
-            // TODO: While this works, it'd be nice to be able to pass in something that implements Text::StyleSheet
             widget::text("default")
                 .font(MONOSPACE_FONT)
-                .style(TestWordColour::new(&theme, &WordStatus::NotTyped)),
+                .style(theme.test_word_colour(&WordStatus::NotTyped)),
             widget::text("correct")
                 .font(MONOSPACE_FONT)
-                .style(TestWordColour::new(&theme, &WordStatus::Correct)),
+                .style(theme.test_word_colour(&WordStatus::Correct)),
             widget::text("incorrect")
                 .font(MONOSPACE_FONT)
-                .style(TestWordColour::new(&theme, &WordStatus::Incorrect)),
+                .style(theme.test_word_colour(&WordStatus::Incorrect)),
             widget::container(
                 widget::text("default with background")
                     .font(MONOSPACE_FONT)
-                    .style(TestWordColour::new(&theme, &WordStatus::NotTyped))
+                    .style(theme.test_word_colour(&WordStatus::NotTyped))
+            )
+            .style(WordHighlight),
+            widget::container(
+                widget::text("incorrect with background")
+                    .font(MONOSPACE_FONT)
+                    .style(theme.test_word_colour(&WordStatus::Incorrect))
             )
             .style(WordHighlight)
         )

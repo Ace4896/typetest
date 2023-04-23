@@ -10,30 +10,20 @@ pub const MONOSPACE_FONT: Font = Font::External {
     bytes: include_bytes!("../fonts/NotoSansMono/NotoSansMono-Regular.ttf"),
 };
 
-/// A wrapper for [`Theme`] and [`WordStatus`] which maps these to the typing test colours.
-pub struct TestWordColour<'a> {
-    theme: &'a Theme,
-    word_status: &'a WordStatus,
+pub trait TestWordColour {
+    fn test_word_colour(&self, word_status: &WordStatus) -> Color;
 }
 
-impl<'a> TestWordColour<'a> {
-    pub fn new(theme: &'a Theme, word_status: &'a WordStatus) -> Self {
-        Self { theme, word_status }
-    }
-}
+impl TestWordColour for Theme {
+    fn test_word_colour(&self, word_status: &WordStatus) -> Color {
+        let palette = self.palette();
+        let extended_palette = self.extended_palette();
 
-impl<'a> From<TestWordColour<'a>> for iced_style::theme::Text {
-    fn from(value: TestWordColour<'a>) -> Self {
-        let palette = value.theme.palette();
-        let extended_palette = value.theme.extended_palette();
-
-        let colour = match value.word_status {
+        match word_status {
             WordStatus::NotTyped => palette.text,
             WordStatus::Correct => extended_palette.success.strong.color,
             WordStatus::Incorrect => extended_palette.danger.strong.color,
-        };
-
-        iced_style::theme::Text::Color(colour)
+        }
     }
 }
 
