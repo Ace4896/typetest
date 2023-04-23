@@ -3,7 +3,7 @@
 use iced::{widget, Application, Command, Element};
 
 use typetest_core::word_generators::WordStatus;
-use typetest_themes::{test_word_colour, WordHighlight, MONOSPACE_FONT};
+use typetest_themes::{TestWordColour, WordHighlight, MONOSPACE_FONT};
 
 /// Top-level Iced application.
 pub struct App {}
@@ -45,17 +45,17 @@ impl Application for App {
             // TODO: While this works, it'd be nice to be able to pass in something that implements Text::StyleSheet
             widget::text("default")
                 .font(MONOSPACE_FONT)
-                .style(test_word_colour(&theme, &WordStatus::NotTyped)),
+                .style(TestWordColour::new(&theme, &WordStatus::NotTyped)),
             widget::text("correct")
                 .font(MONOSPACE_FONT)
-                .style(test_word_colour(&theme, &WordStatus::Correct)),
+                .style(TestWordColour::new(&theme, &WordStatus::Correct)),
             widget::text("incorrect")
                 .font(MONOSPACE_FONT)
-                .style(test_word_colour(&theme, &WordStatus::Incorrect)),
+                .style(TestWordColour::new(&theme, &WordStatus::Incorrect)),
             widget::container(
                 widget::text("default with background")
                     .font(MONOSPACE_FONT)
-                    .style(test_word_colour(&theme, &WordStatus::NotTyped))
+                    .style(TestWordColour::new(&theme, &WordStatus::NotTyped))
             )
             .style(WordHighlight)
         )

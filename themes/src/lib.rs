@@ -10,26 +10,31 @@ pub const MONOSPACE_FONT: Font = Font::External {
     bytes: include_bytes!("../fonts/NotoSansMono/NotoSansMono-Regular.ttf"),
 };
 
-pub fn test_word_colour(theme: &Theme, word_status: &WordStatus) -> Color {
-    match word_status {
-        WordStatus::NotTyped => not_typed_colour(theme),
-        WordStatus::Correct => correct_word(theme),
-        WordStatus::Incorrect => incorrect_word(theme),
+/// A wrapper for [`Theme`] and [`WordStatus`] which maps these to the typing test colours.
+pub struct TestWordColour<'a> {
+    theme: &'a Theme,
+    word_status: &'a WordStatus,
+}
+
+impl<'a> TestWordColour<'a> {
+    pub fn new(theme: &'a Theme, word_status: &'a WordStatus) -> Self {
+        Self { theme, word_status }
     }
 }
 
-pub fn not_typed_colour(theme: &Theme) -> Color {
-    theme.palette().text
-}
+impl<'a> From<TestWordColour<'a>> for iced_style::theme::Text {
+    fn from(value: TestWordColour<'a>) -> Self {
+        let palette = value.theme.palette();
+        let extended_palette = value.theme.extended_palette();
 
-pub fn correct_word(theme: &Theme) -> Color {
-    // TODO: Not sure if this is always readable
-    theme.extended_palette().success.strong.color
-}
+        let colour = match value.word_status {
+            WordStatus::NotTyped => palette.text,
+            WordStatus::Correct => extended_palette.success.strong.color,
+            WordStatus::Incorrect => extended_palette.danger.strong.color,
+        };
 
-pub fn incorrect_word(theme: &Theme) -> Color {
-    // TODO: Not sure if this is always readable
-    theme.extended_palette().danger.strong.color
+        iced_style::theme::Text::Color(colour)
+    }
 }
 
 /// A [`container::StyleSheet`] implementation that indicates which word is currently highlighted.
