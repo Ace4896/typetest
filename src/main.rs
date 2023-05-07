@@ -6,11 +6,23 @@ use typetest_core::word_generators::WordStatus;
 use typetest_themes::{TestWordColour, WordHighlight, MONOSPACE_FONT};
 
 /// Top-level Iced application.
-pub struct App {}
+pub struct App {
+    app_settings: AppSettings,
+
+    // View-specific state - should be moved once views are setup
+    selected_theme: Option<iced::Theme>
+}
+
+// Top-level application settings.
+pub struct AppSettings {
+    current_theme: iced::Theme,
+}
 
 /// Top-level message for the application.
 #[derive(Clone, Debug)]
-pub enum AppMessage {}
+pub enum AppMessage {
+    ThemeChanged(iced::Theme)
+}
 
 fn main() -> Result<(), iced::Error> {
     App::run(iced::Settings::default())
@@ -23,7 +35,16 @@ impl Application for App {
     type Flags = ();
 
     fn new(_flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        (Self {}, Command::none())
+        (
+            Self {
+                app_settings: AppSettings {
+                    current_theme: iced::Theme::Dark,
+                },
+
+                selected_theme: Some(iced::Theme::Dark),
+            },
+            Command::none(),
+        )
     }
 
     fn title(&self) -> String {
@@ -31,7 +52,7 @@ impl Application for App {
     }
 
     fn theme(&self) -> Self::Theme {
-        iced::Theme::Dark
+        self.app_settings.current_theme.clone()
     }
 
     fn update(&mut self, _message: Self::Message) -> Command<Self::Message> {
@@ -40,6 +61,9 @@ impl Application for App {
 
     fn view(&self) -> Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
         let theme = self.theme();
+
+        // TODO: It looks like I need a custom theme enum anyway, because pick_list requires the Eq trait to be implemented
+        let theme_picklist = widget::pick_list(&[iced::Theme::Light, iced::Theme::Dark], self.selected_theme, AppMessage::ThemeChanged);
 
         iced::widget::column!(
             widget::text("default")
