@@ -10,4 +10,4 @@ license = "MIT"
 [dependencies]
 typetest_core = { version = "1.0", path = "./core" }
 
-iced = { version = "0.10", features = ["smol"] }
+iced = { version = "0.10", features = ["advanced", "smol"] }
