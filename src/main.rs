@@ -3,7 +3,11 @@
 use iced::{Application, Settings};
 
 mod app;
+mod fonts;
 
 fn main() -> iced::Result {
-    app::App::run(Settings::default())
+    app::App::run(Settings {
+        default_font: fonts::DEFAULT,
+        ..Default::default()
+    })
 }

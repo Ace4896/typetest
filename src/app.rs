@@ -3,7 +3,9 @@ use iced::{executor, widget, Application, Command, Element, Subscription, Theme}
 pub struct App {}
 
 #[derive(Clone, Debug)]
-pub enum AppMessage {}
+pub enum AppMessage {
+    LoadFont(Option<iced::font::Error>),
+}
 
 impl Application for App {
     type Executor = executor::Default;
@@ -12,7 +14,10 @@ impl Application for App {
     type Flags = ();
 
     fn new(_: Self::Flags) -> (Self, Command<Self::Message>) {
-        (App {}, Command::none())
+        (
+            App {},
+            crate::fonts::load_command().map(|r| AppMessage::LoadFont(r.err())),
+        )
     }
 
     fn title(&self) -> String {
@@ -29,7 +34,7 @@ impl Application for App {
 
     fn view(&self) -> Element<Self::Message> {
         widget::text("Hello world!")
-            .font(iced::Font::MONOSPACE)
+            .font(crate::fonts::MONOSPACE)
             .into()
     }
 }
