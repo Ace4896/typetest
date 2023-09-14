@@ -3,11 +3,11 @@ name = "typetest_core"
 description = "Crate providing the core backend for TypeTest."
 version = "1.0.0"
 authors = ["Jon Pacheco <jon.pacheco2@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 
 [dependencies]
 rand = { version = "0.8", features = ["small_rng"] }
 
 [dev-dependencies]
-rstest = "0.10"
+rstest = "0.18"
