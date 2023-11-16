@@ -1,5 +1,7 @@
 use iced::{widget, Application, Command, Element, Subscription};
 
+mod controls;
+
 pub struct App {}
 
 #[derive(Debug, Clone)]
@@ -32,6 +34,6 @@ impl Application for App {
     }
 
     fn view(&self) -> Element<'_, Self::Message, iced::Renderer<Self::Theme>> {
-        widget::text("Hello world!").into()
+        controls::circle::Circle::new(50.0).into()
     }
 }
